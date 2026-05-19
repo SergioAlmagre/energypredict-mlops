@@ -207,6 +207,21 @@ Sin confirmacion interactiva:
 terraform destroy -auto-approve
 ```
 
+Script unificado (recomendado para apagar al final del dia):
+```powershell
+.\scripts\destroy_all.ps1
+```
+
+Incluir tambien stack DevOps:
+```powershell
+.\scripts\destroy_all.ps1 -IncludeDevOps
+```
+
+Modo emergencia (ademas borra RGs por `az group delete`):
+```powershell
+.\scripts\destroy_all.ps1 -EmergencyDeleteResourceGroups
+```
+
 ## 5.6 Estrategia de apply en orden (de mas conservadora a menos conservadora)
 
 1. Opcion A (mas conservadora): mantener `prod` en la misma region y pedir cuota

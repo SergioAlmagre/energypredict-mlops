@@ -20,6 +20,66 @@ Backend para mantenimiento predictivo industrial con FastAPI, MLOps y despliegue
 - Variable Group `energypredict-shared` gestionable como codigo (`infra/terraform/devops`).
 - Suite de tests automatizados.
 
+## Visual Walkthrough
+Estas capturas muestran el comportamiento real del proyecto en ejecucion.
+
+### 1. Product UI
+Portal del simulador predictivo en Azure Static Web Apps (sin datos cargados en esta vista inicial).
+
+![Predictive simulator portal (UI)](docs/media/predictive-simulator-ui-no-data_censurada.jpg)
+
+### 2. API Health and Runtime Status
+Verificacion de health checks del backend (`live` / `ready`) y estado operativo correcto.
+
+![API health status OK](docs/media/health-status-ok_censurada.jpg)
+
+### 3. Azure DevOps CI/CD Overview
+Vista general de ejecucion de pipelines para infra, backend y frontend.
+
+![Pipelines running](docs/media/pipelines-running_censurada.jpg)
+
+Pipeline de backend (app) con fases de validacion y despliegue.
+
+![Backend pipeline overview](docs/media/general-pipeline-app_censurada.jpg)
+
+Validacion de seguridad de dependencias en CI (dependency audit).
+
+![Dependency audit in app pipeline](docs/media/dependency-audit-pipeline-app_censurada.jpg)
+
+Pipeline de frontend (vista general de despliegue).
+
+![Frontend pipeline overview](docs/media/general-front-deploy-pipeline_censurada.jpg)
+
+Pipeline de frontend (detalle del job de deploy).
+
+![Frontend deploy details](docs/media/details-front-deploy-pipeline_censurada.jpg)
+
+### 4. AKS and Kubernetes Operations
+Estado del deployment y replicas en AKS.
+
+![Deployment status](docs/media/status-deploy_censurada.jpg)
+
+Relacion entre Service, Endpoints y Pods en namespace de aplicacion.
+
+![Service, endpoints and pods](docs/media/svc-endpoints-pods_censurada.jpg)
+
+Detalle de un pod para diagnostico operativo.
+
+![Describe pod output](docs/media/describe-pod_censurada.jpg)
+
+Eventos del pod para troubleshooting (scheduling, mounts, pulls, etc.).
+
+![Pod events](docs/media/pod-events_censurada.jpg)
+
+Metricas de escalado y consumo (`HPA` / `kubectl top`).
+
+![HPA and top metrics](docs/media/hpa-top_censurada.jpg)
+
+### 5. Data Layer
+Estado de Azure Database for PostgreSQL en portal Azure.
+
+![Azure Database for PostgreSQL dashboard](docs/media/azure-database-for-postgres-sql-dashboard_censurada.jpg)
+
 ## AKS-First Quickstart
 ```powershell
 cd infra/terraform/envs/dev
@@ -33,8 +93,14 @@ Backend and frontend deployment are managed through Azure DevOps pipelines (`inf
 
 El pipeline de app prepara host publico del API en Ingress y el pipeline de frontend puede consumir ese host para publicar `config.js` con `API_BASE_URL` por entorno.
 
+## Quick cleanup (cost control)
+Para destruir los entornos desplegados y evitar costes fuera de horario:
+```powershell
+.\scripts\destroy_all.ps1
+```
+
 ## API Base Path
-- ` /api/v1`
+- `/api/v1`
 
 ## Key Endpoints
 - `GET /health/live`

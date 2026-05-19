@@ -20,14 +20,30 @@ fi
 echo "Ensuring ingress-nginx controller is installed..."
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx >/dev/null 2>&1 || true
 helm repo update >/dev/null
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.ingressClassResource.name="${INGRESS_CLASS}" \
-  --set controller.ingressClassResource.controllerValue="k8s.io/ingress-nginx" \
-  --set controller.service.type=LoadBalancer \
-  --set controller.replicaCount=1 \
-  --wait
+
+# Helm sometimes times out on first install in small/new clusters.
+# We avoid hard fail on short rollout by retrying and handling readiness in the
+# explicit "Waiting for public IP" loop below.
+for attempt in 1 2 3; do
+  if helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+    --namespace ingress-nginx \
+    --create-namespace \
+    --set controller.ingressClassResource.name="${INGRESS_CLASS}" \
+    --set controller.ingressClassResource.controllerValue="k8s.io/ingress-nginx" \
+    --set controller.service.type=LoadBalancer \
+    --set controller.replicaCount=1 \
+    --timeout 15m; then
+    break
+  fi
+
+  if [[ "$attempt" -lt 3 ]]; then
+    echo "Helm install/upgrade failed (attempt $attempt). Retrying in 20s..."
+    sleep 20
+  else
+    echo "Helm install/upgrade failed after 3 attempts."
+    exit 1
+  fi
+done
 
 echo "Waiting for public IP from ingress-nginx service..."
 LB_IP=""
