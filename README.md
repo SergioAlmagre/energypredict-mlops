@@ -23,17 +23,43 @@ Backend para mantenimiento predictivo industrial con FastAPI, MLOps y despliegue
 ## Visual Walkthrough
 Estas capturas muestran el comportamiento real del proyecto en ejecucion.
 
-### 1. Product UI
+### 1. Infrastructure Bootstrap
+Primero se ve el pipeline de infraestructura completando el aprovisionamiento y dejando el estado listo para el resto del despliegue.
+
+![Infra pipeline OK](docs/media/infra-pipeline-ok_censurada.jpg)
+
+El backend de Terraform ya trabaja con backend remoto en Azure Storage para no depender del estado local.
+
+![TFState storage resource](docs/media/storage-tfstate-resource_censurada.jpg)
+
+Vista de todos los Resource Groups creados para separar el laboratorio por entorno y por componente.
+
+![All resource groups](docs/media/all-resource-groups_censurada.jpg)
+
+### 2. Provisioned Platform
+Detalle de los recursos principales del entorno de produccion una vez aplicado el stack de plataforma.
+
+![EnergyPredict prod resources](docs/media/energypredict-resources-prod_censurada.jpg)
+
+Detalle de los recursos de AKS y su soporte operativo en Azure.
+
+![AKS resources](docs/media/aks-resources_censurada.jpg)
+
+Si la extension de datos esta activa, se observa el workspace de Databricks del entorno de produccion.
+
+![Databricks prod resources](docs/media/databricks-prod-resources_censurada.jpg)
+
+### 3. Product UI
 Portal del simulador predictivo en Azure Static Web Apps (sin datos cargados en esta vista inicial).
 
 ![Predictive simulator portal (UI)](docs/media/predictive-simulator-ui-no-data_censurada.jpg)
 
-### 2. API Health and Runtime Status
+### 4. API Health and Runtime Status
 Verificacion de health checks del backend (`live` / `ready`) y estado operativo correcto.
 
 ![API health status OK](docs/media/health-status-ok_censurada.jpg)
 
-### 3. Azure DevOps CI/CD Overview
+### 5. Azure DevOps CI/CD Overview
 Vista general de ejecucion de pipelines para infra, backend y frontend.
 
 ![Pipelines running](docs/media/pipelines-running_censurada.jpg)
@@ -54,7 +80,7 @@ Pipeline de frontend (detalle del job de deploy).
 
 ![Frontend deploy details](docs/media/details-front-deploy-pipeline_censurada.jpg)
 
-### 4. AKS and Kubernetes Operations
+### 6. AKS and Kubernetes Operations
 Estado del deployment y replicas en AKS.
 
 ![Deployment status](docs/media/status-deploy_censurada.jpg)
@@ -75,7 +101,7 @@ Metricas de escalado y consumo (`HPA` / `kubectl top`).
 
 ![HPA and top metrics](docs/media/hpa-top_censurada.jpg)
 
-### 5. Data Layer
+### 7. Data Layer
 Estado de Azure Database for PostgreSQL en portal Azure.
 
 ![Azure Database for PostgreSQL dashboard](docs/media/azure-database-for-postgres-sql-dashboard_censurada.jpg)

@@ -63,8 +63,8 @@ resource "azurerm_key_vault" "this" {
   resource_group_name           = azurerm_resource_group.this.name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
-  purge_protection_enabled      = true
-  soft_delete_retention_days    = 7
+  purge_protection_enabled      = var.key_vault_purge_protection_enabled
+  soft_delete_retention_days    = var.key_vault_soft_delete_retention_days
   public_network_access_enabled = true
   tags                          = local.base_tags
 }

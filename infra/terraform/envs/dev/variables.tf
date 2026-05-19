@@ -5,6 +5,14 @@ variable "resource_group_name" { type = string }
 variable "acr_name" { type = string }
 variable "aks_name" { type = string }
 variable "key_vault_name" { type = string }
+variable "key_vault_purge_protection_enabled" {
+  type    = bool
+  default = false
+}
+variable "key_vault_soft_delete_retention_days" {
+  type    = number
+  default = 7
+}
 variable "log_analytics_name" { type = string }
 variable "create_dns_zone" { type = bool }
 variable "dns_zone_name" { type = string }

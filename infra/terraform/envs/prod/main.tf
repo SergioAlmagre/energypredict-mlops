@@ -8,6 +8,8 @@ module "platform" {
   acr_name                               = var.acr_name
   aks_name                               = var.aks_name
   key_vault_name                         = var.key_vault_name
+  key_vault_purge_protection_enabled     = var.key_vault_purge_protection_enabled
+  key_vault_soft_delete_retention_days   = var.key_vault_soft_delete_retention_days
   log_analytics_name                     = var.log_analytics_name
   create_dns_zone                        = var.create_dns_zone
   dns_zone_name                          = var.dns_zone_name

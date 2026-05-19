@@ -240,6 +240,66 @@ Script unificado (recomendado para apagar al final del dia):
 .\scripts\destroy_all.ps1
 ```
 
+Comportamiento por defecto:
+- Intenta `terraform destroy` en `prod` y `dev` usando backend remoto.
+- Intenta borrar y purgar secretos conocidos de Key Vault (`DATABASE-URL`, `JWT-SECRET-KEY`, `FERNET-KEY`, Snowflake y Databricks).
+- Si algun destroy falla, ejecuta automaticamente borrado de Resource Groups (`az group delete`) para evitar coste residual.
+- Borra tambien el Resource Group de `tfstate` (wipe total).
+- Solo borra Resource Groups explicitos del proyecto: `rg-energypredict-prod`, `rg-energypredict-dev` y `rg-energypredict-tfstate`.
+- No borra otros recursos de la suscripcion.
+- `NetworkWatcherRG` solo se borra si se usa `-DeleteNetworkWatcherRG`.
+
+Limitacion importante:
+- Si Key Vault tiene purge protection activa, Azure puede impedir el purge inmediato aunque el script lo solicite.
+- En ese caso el recurso queda protegido hasta que venza la retencion configurada por Azure.
+
+Configuracion recomendada:
+- `dev`: `key_vault_purge_protection_enabled = false`
+- `prod`: `key_vault_purge_protection_enabled = true`
+
+Nota:
+- Azure Key Vault mantiene soft-delete obligatorio; no se puede desactivar por completo.
+- Con purge protection desactivada, el script puede purgar secretos/vaults cuando los permisos lo permitan.
+
+Workaround de laboratorio:
+- Si un Key Vault de dev anterior queda bloqueado por purge protection, cambiar `key_vault_name` en `infra/terraform/envs/dev/terraform.tfvars`.
+- Ejemplo: `kv-energypredict-dev-01` -> `kv-energypredict-dev-02`.
+- Despues regenerar `TFVARS_DEV_B64` con `.\scripts\generate_tfvars_b64.ps1` y actualizar el Variable Group `energypredict-shared`.
+- Si ocurre lo mismo en prod durante la practica, aplicar la misma idea: `kv-energypredict-prod-01` -> `kv-energypredict-prod-02`.
+- Despues regenerar `TFVARS_PROD_B64` y actualizar `KEY_VAULT_NAME_PROD` en Library.
+
+Error comun:
+- Si el pipeline sigue mostrando `kv-energypredict-dev-01`, Azure DevOps esta usando un `TFVARS_DEV_B64` antiguo.
+- Regenerar `TFVARS_DEV_B64` y actualizar tambien `KEY_VAULT_NAME_DEV` en Library.
+
+Permisos necesarios del Service Principal:
+- Para crear `azurerm_role_assignment`, la Service Connection necesita permisos de asignacion de roles.
+- En una suscripcion de practica, usar `Owner`.
+- Alternativa mas limitada: `Contributor` + `User Access Administrator`.
+
+Comando orientativo:
+```powershell
+az role assignment create `
+  --assignee-object-id "<service-principal-object-id>" `
+  --assignee-principal-type ServicePrincipal `
+  --role "User Access Administrator" `
+  --scope "/subscriptions/<subscription-id>"
+```
+
+Nota de ejecucion:
+- Si estas en la raiz del repo: `.\scripts\destroy_all.ps1`
+- Si ya estas dentro de la carpeta `scripts`: `.\destroy_all.ps1`
+
+Si tu backend remoto usa nombres distintos:
+```powershell
+.\scripts\destroy_all.ps1 `
+  -TfStateResourceGroup "<rg-tfstate>" `
+  -TfStateStorageAccount "<storage-account-tfstate>" `
+  -TfStateContainer "<container-tfstate>" `
+  -TfStateKeyDev "<dev-key>" `
+  -TfStateKeyProd "<prod-key>"
+```
+
 Incluir tambien stack DevOps:
 ```powershell
 .\scripts\destroy_all.ps1 -IncludeDevOps

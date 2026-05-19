@@ -26,6 +26,18 @@ variable "key_vault_name" {
   type = string
 }
 
+variable "key_vault_purge_protection_enabled" {
+  type        = bool
+  default     = true
+  description = "Enable purge protection for Key Vault. Keep true in prod; use false in ephemeral dev/test environments."
+}
+
+variable "key_vault_soft_delete_retention_days" {
+  type        = number
+  default     = 7
+  description = "Soft-delete retention days for Key Vault. Azure requires at least 7 days."
+}
+
 variable "log_analytics_name" {
   type = string
 }
