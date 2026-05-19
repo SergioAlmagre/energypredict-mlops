@@ -1,4 +1,4 @@
-﻿import { login, me } from "./auth.js";
+import { login, me, register } from "./auth.js";
 import { appConfig, setApiBaseUrl, setOutput, setStatus } from "./config.js";
 import { checkHealth, checkIntegrations, runPrediction } from "./simulator.js";
 
@@ -31,6 +31,26 @@ function bindAuthForm() {
       setStatus("authStatus", `Authenticated as ${profile.email} (${profile.role})`, "ok");
     } catch (error) {
       setStatus("authStatus", `Authentication failed: ${error.message}`, "error");
+    }
+  });
+}
+
+function bindRegisterForm() {
+  const form = document.getElementById("registerForm");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+    const role = document.getElementById("registerRole").value;
+
+    try {
+      await register(email, password, role);
+      setStatus("registerStatus", `User ${email} created with role ${role}.`, "ok");
+      document.getElementById("email").value = email;
+      document.getElementById("password").value = password;
+    } catch (error) {
+      setStatus("registerStatus", `Registration failed: ${error.message}`, "error");
     }
   });
 }
@@ -89,9 +109,11 @@ function bindPredictionForm() {
 function bootstrap() {
   bindApiBaseUrlForm();
   bindAuthForm();
+  bindRegisterForm();
   bindHealthActions();
   bindPredictionForm();
   setStatus("authStatus", `Environment: ${appConfig.environment}. Not authenticated.`);
+  setStatus("registerStatus", "Register a user before first login.");
 }
 
 bootstrap();

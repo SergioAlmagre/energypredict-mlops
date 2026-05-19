@@ -105,6 +105,18 @@ Variables minimas:
 - `FRONTEND_DEV_API_BASE_URL`
 - `FRONTEND_PROD_API_BASE_URL`
 
+3. Terraform remote state (recomendado)
+- `TF_STATE_RESOURCE_GROUP`
+- `TF_STATE_LOCATION`
+- `TF_STATE_STORAGE_ACCOUNT`
+- `TF_STATE_CONTAINER`
+- `TF_STATE_KEY_DEV`
+- `TF_STATE_KEY_PROD`
+
+4. Terraform tfvars via Library (opcional, secretos base64)
+- `TFVARS_DEV_B64`
+- `TFVARS_PROD_B64`
+
 ## 4.3 Environments recomendados
 - `energypredict-dev-infra`
 - `energypredict-prod-infra`
@@ -120,6 +132,11 @@ terraform init
 terraform plan -out tfplan
 terraform apply tfplan
 ```
+
+El pipeline de infraestructura:
+1. Crea/verifica el backend remoto en Azure Storage (state bootstrap).
+2. Ejecuta `terraform init -reconfigure` con backend `azurerm`.
+3. Si existen `TFVARS_DEV_B64`/`TFVARS_PROD_B64`, reconstruye `terraform.tfvars` en el agente.
 
 ## 5. Terraform por entorno
 
@@ -231,9 +248,18 @@ Pipeline: `azure-pipelines-app.yml`
 - Reutiliza la misma imagen de CI (sin rebuild).
 - Sustituye placeholders de Workload Identity/Key Vault en overlays.
 - `kubectl apply -k k8s/overlays/<env>`.
+- Ejecuta `scripts/prepare_public_api_endpoint.sh <env>` para:
+- instalar/asegurar ingress-nginx con LoadBalancer,
+- obtener IP publica del controlador,
+- configurar host publico dinamico (`nip.io`) en el Ingress.
 - `kubectl set image` por SHA (`Build.SourceVersion`).
 - `kubectl set env` para `CORS_ALLOWED_ORIGINS`.
 - `kubectl rollout status`.
+
+3. Endpoint online generado automaticamente
+- Dev: `http://api-dev.<public-ip-dashed>.nip.io/api/v1`
+- Prod: `http://api.<public-ip-dashed>.nip.io/api/v1`
+- El pipeline imprime la URL final como `Public API endpoint`.
 
 ## 7. Despliegue frontend HTTPS
 
@@ -241,8 +267,14 @@ Pipeline: `azure-pipelines-frontend.yml`
 
 1. Valida archivos del portal.
 2. Genera `config.js` desde `config.template.js` con URL API por entorno.
+- Si existe Ingress en AKS, el pipeline toma host real desde cluster y construye URL automaticamente.
 3. Obtiene token SWA con `az staticwebapp secrets list`.
 4. Publica contenido estatico con `AzureStaticWebApp@0`.
+
+Nota de navegador:
+- SWA se sirve por HTTPS.
+- Si `FRONTEND_API_SCHEME_*` es `http`, el navegador puede bloquear llamadas por mixed content.
+- Para uso plenamente online desde SWA, configurar HTTPS tambien en API (TLS del Ingress + certificado valido).
 
 ## 8. Validacion operativa
 
@@ -319,6 +351,33 @@ kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath="{.s
 - Confirmar login.
 - Ejecutar prediccion desde UI.
 - Revisar salida JSON.
+
+## 8.8.1 Registro de usuario desde la UI
+El portal incluye formulario de registro (email, password, role) en el bloque de autenticacion.
+
+Flujo:
+1. Abrir el portal HTTPS de SWA.
+2. Completar formulario `Create User`.
+3. Pulsar `Create user`.
+4. Verificar mensaje de exito en UI.
+5. Iniciar sesion con ese usuario desde el mismo portal.
+
+Validacion API equivalente:
+```bash
+curl -X POST "<API_BASE_URL>/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo.user@energypredict.local","password":"DemoPass!123","role":"operator"}'
+```
+
+Nota:
+- La API no renderiza HTML propio; el consumo visual se hace desde SWA.
+- Si se prueba directo en navegador, abrir docs OpenAPI (`/docs`) o endpoints JSON.
+
+## 8.8.2 Verificacion de conectividad online (SWA -> API)
+1. En DevTools del navegador (tab `Network`), confirmar peticiones a `<API_BASE_URL>`.
+2. Confirmar que no hay bloqueos CORS ni mixed-content.
+3. Si SWA (HTTPS) llama a API en HTTP, el navegador puede bloquear la llamada.
+4. Solucion recomendada para entorno profesional: exponer API con HTTPS valido en Ingress.
 
 ## 8.9 CSI + Workload Identity (dev)
 ```bash

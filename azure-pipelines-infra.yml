@@ -9,8 +9,53 @@ variables:
     value: '1.9.8'
 
 stages:
+  - stage: Bootstrap_TFState
+    displayName: Bootstrap Terraform Remote State
+    jobs:
+      - job: bootstrap_state
+        pool:
+          vmImage: ubuntu-22.04
+        steps:
+          - task: AzureCLI@2
+            displayName: Ensure remote state resources exist
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                : "${TF_STATE_RESOURCE_GROUP:?Missing TF_STATE_RESOURCE_GROUP variable}"
+                : "${TF_STATE_LOCATION:?Missing TF_STATE_LOCATION variable}"
+                : "${TF_STATE_STORAGE_ACCOUNT:?Missing TF_STATE_STORAGE_ACCOUNT variable}"
+                : "${TF_STATE_CONTAINER:?Missing TF_STATE_CONTAINER variable}"
+
+                az group create \
+                  --name "$(TF_STATE_RESOURCE_GROUP)" \
+                  --location "$(TF_STATE_LOCATION)" 1>/dev/null
+
+                az storage account create \
+                  --name "$(TF_STATE_STORAGE_ACCOUNT)" \
+                  --resource-group "$(TF_STATE_RESOURCE_GROUP)" \
+                  --location "$(TF_STATE_LOCATION)" \
+                  --sku Standard_LRS \
+                  --kind StorageV2 \
+                  --min-tls-version TLS1_2 \
+                  --allow-blob-public-access false 1>/dev/null
+
+                ACCOUNT_KEY="$(az storage account keys list \
+                  --resource-group "$(TF_STATE_RESOURCE_GROUP)" \
+                  --account-name "$(TF_STATE_STORAGE_ACCOUNT)" \
+                  --query '[0].value' -o tsv)"
+
+                az storage container create \
+                  --name "$(TF_STATE_CONTAINER)" \
+                  --account-name "$(TF_STATE_STORAGE_ACCOUNT)" \
+                  --account-key "$ACCOUNT_KEY" \
+                  --public-access off 1>/dev/null
+
   - stage: Terraform_Plan_Dev
     displayName: Terraform Plan Dev
+    dependsOn: Bootstrap_TFState
     jobs:
       - job: plan_dev
         pool:
@@ -48,8 +93,20 @@ stages:
               inlineScript: |
                 set -euo pipefail
                 cd infra/terraform/envs/dev
+                : "${TF_STATE_RESOURCE_GROUP:?Missing TF_STATE_RESOURCE_GROUP variable}"
+                : "${TF_STATE_STORAGE_ACCOUNT:?Missing TF_STATE_STORAGE_ACCOUNT variable}"
+                : "${TF_STATE_CONTAINER:?Missing TF_STATE_CONTAINER variable}"
+                : "${TF_STATE_KEY_DEV:?Missing TF_STATE_KEY_DEV variable}"
+                if [ -n "${TFVARS_DEV_B64:-}" ]; then
+                  echo "$TFVARS_DEV_B64" | base64 -d > terraform.tfvars
+                fi
                 test -f terraform.tfvars || { echo "Missing infra/terraform/envs/dev/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
-                terraform init -input=false
+                terraform init -input=false -reconfigure \
+                  -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
+                  -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
+                  -backend-config="container_name=$(TF_STATE_CONTAINER)" \
+                  -backend-config="key=$(TF_STATE_KEY_DEV)" \
+                  -backend-config="use_azuread_auth=true"
                 terraform validate
                 terraform plan -input=false -var-file=terraform.tfvars -out tfplan
 
@@ -85,8 +142,20 @@ stages:
                     inlineScript: |
                       set -euo pipefail
                       cd infra/terraform/envs/dev
+                      : "${TF_STATE_RESOURCE_GROUP:?Missing TF_STATE_RESOURCE_GROUP variable}"
+                      : "${TF_STATE_STORAGE_ACCOUNT:?Missing TF_STATE_STORAGE_ACCOUNT variable}"
+                      : "${TF_STATE_CONTAINER:?Missing TF_STATE_CONTAINER variable}"
+                      : "${TF_STATE_KEY_DEV:?Missing TF_STATE_KEY_DEV variable}"
+                      if [ -n "${TFVARS_DEV_B64:-}" ]; then
+                        echo "$TFVARS_DEV_B64" | base64 -d > terraform.tfvars
+                      fi
                       test -f terraform.tfvars || { echo "Missing infra/terraform/envs/dev/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
-                      terraform init -input=false
+                      terraform init -input=false -reconfigure \
+                        -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
+                        -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
+                        -backend-config="container_name=$(TF_STATE_CONTAINER)" \
+                        -backend-config="key=$(TF_STATE_KEY_DEV)" \
+                        -backend-config="use_azuread_auth=true"
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve
 
   - stage: Terraform_Plan_Prod
@@ -129,8 +198,20 @@ stages:
               inlineScript: |
                 set -euo pipefail
                 cd infra/terraform/envs/prod
+                : "${TF_STATE_RESOURCE_GROUP:?Missing TF_STATE_RESOURCE_GROUP variable}"
+                : "${TF_STATE_STORAGE_ACCOUNT:?Missing TF_STATE_STORAGE_ACCOUNT variable}"
+                : "${TF_STATE_CONTAINER:?Missing TF_STATE_CONTAINER variable}"
+                : "${TF_STATE_KEY_PROD:?Missing TF_STATE_KEY_PROD variable}"
+                if [ -n "${TFVARS_PROD_B64:-}" ]; then
+                  echo "$TFVARS_PROD_B64" | base64 -d > terraform.tfvars
+                fi
                 test -f terraform.tfvars || { echo "Missing infra/terraform/envs/prod/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
-                terraform init -input=false
+                terraform init -input=false -reconfigure \
+                  -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
+                  -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
+                  -backend-config="container_name=$(TF_STATE_CONTAINER)" \
+                  -backend-config="key=$(TF_STATE_KEY_PROD)" \
+                  -backend-config="use_azuread_auth=true"
                 terraform validate
                 terraform plan -input=false -var-file=terraform.tfvars -out tfplan
 
@@ -167,6 +248,18 @@ stages:
                     inlineScript: |
                       set -euo pipefail
                       cd infra/terraform/envs/prod
+                      : "${TF_STATE_RESOURCE_GROUP:?Missing TF_STATE_RESOURCE_GROUP variable}"
+                      : "${TF_STATE_STORAGE_ACCOUNT:?Missing TF_STATE_STORAGE_ACCOUNT variable}"
+                      : "${TF_STATE_CONTAINER:?Missing TF_STATE_CONTAINER variable}"
+                      : "${TF_STATE_KEY_PROD:?Missing TF_STATE_KEY_PROD variable}"
+                      if [ -n "${TFVARS_PROD_B64:-}" ]; then
+                        echo "$TFVARS_PROD_B64" | base64 -d > terraform.tfvars
+                      fi
                       test -f terraform.tfvars || { echo "Missing infra/terraform/envs/prod/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
-                      terraform init -input=false
+                      terraform init -input=false -reconfigure \
+                        -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
+                        -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
+                        -backend-config="container_name=$(TF_STATE_CONTAINER)" \
+                        -backend-config="key=$(TF_STATE_KEY_PROD)" \
+                        -backend-config="use_azuread_auth=true"
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve

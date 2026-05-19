@@ -11,6 +11,7 @@ Backend para mantenimiento predictivo industrial con FastAPI, MLOps y despliegue
 - Docker (imagen para AKS).
 - Kubernetes manifests (`k8s/base`, `k8s/overlays`).
 - Portal web estatico para simulador (`frontend/simulator-portal`).
+- Registro de usuarios desde UI del portal (consume `POST /api/v1/auth/register`).
 - Middleware de trazabilidad HTTP (`trace_id`, metodo, ruta, status, latencia, user, role).
 - CI/CD en Azure DevOps:
   - `azure-pipelines-infra.yml`
@@ -29,6 +30,8 @@ terraform apply tfplan
 ```
 
 Backend and frontend deployment are managed through Azure DevOps pipelines (`infra`, `app`, `frontend`).
+
+El pipeline de app prepara host publico del API en Ingress y el pipeline de frontend puede consumir ese host para publicar `config.js` con `API_BASE_URL` por entorno.
 
 ## API Base Path
 - ` /api/v1`

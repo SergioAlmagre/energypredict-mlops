@@ -74,8 +74,16 @@ stages:
                     inlineScript: |
                       set -euo pipefail
 
+                      API_BASE_URL="$(FRONTEND_DEV_API_BASE_URL)"
+                      az aks get-credentials --resource-group $(AKS_DEV_RESOURCE_GROUP) --name $(AKS_DEV_CLUSTER_NAME) --overwrite-existing
+                      API_HOST="$(kubectl -n energypredict-dev get ingress energypredict-api-dev -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
+                      if [ -n "${API_HOST}" ]; then
+                        API_SCHEME="${FRONTEND_API_SCHEME_DEV:-http}"
+                        API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+
                       sed \
-                        -e "s|__API_BASE_URL__|$(FRONTEND_DEV_API_BASE_URL)|g" \
+                        -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|dev|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 
@@ -117,8 +125,16 @@ stages:
                     inlineScript: |
                       set -euo pipefail
 
+                      API_BASE_URL="$(FRONTEND_PROD_API_BASE_URL)"
+                      az aks get-credentials --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --overwrite-existing
+                      API_HOST="$(kubectl -n energypredict-prod get ingress energypredict-api-prod -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
+                      if [ -n "${API_HOST}" ]; then
+                        API_SCHEME="${FRONTEND_API_SCHEME_PROD:-http}"
+                        API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+
                       sed \
-                        -e "s|__API_BASE_URL__|$(FRONTEND_PROD_API_BASE_URL)|g" \
+                        -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|prod|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 

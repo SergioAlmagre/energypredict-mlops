@@ -31,6 +31,23 @@
           <input id="password" type="password" required />
           <button type="submit">Login</button>
         </form>
+        <hr class="divider" />
+        <form id="registerForm" class="stack">
+          <h3>Create User</h3>
+          <label>Email</label>
+          <input id="registerEmail" type="email" required />
+          <label>Password</label>
+          <input id="registerPassword" type="password" minlength="8" required />
+          <label>Role</label>
+          <select id="registerRole" required>
+            <option value="consumer">consumer</option>
+            <option value="analyst">analyst</option>
+            <option value="ml_engineer">ml_engineer</option>
+            <option value="admin">admin</option>
+          </select>
+          <button type="submit">Register</button>
+        </form>
+        <div id="registerStatus" class="status">No user registration attempted yet.</div>
         <div id="authStatus" class="status">Not authenticated</div>
       </section>
 

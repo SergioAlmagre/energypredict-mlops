@@ -47,9 +47,21 @@ variables = {
 
   FRONTEND_DEV_API_BASE_URL  = "https://<api-dev-host>/api/v1"
   FRONTEND_PROD_API_BASE_URL = "https://<api-prod-host>/api/v1"
+  FRONTEND_API_SCHEME_DEV    = "http"
+  FRONTEND_API_SCHEME_PROD   = "http"
+
+  TF_STATE_RESOURCE_GROUP = "rg-<project>-tfstate"
+  TF_STATE_LOCATION       = "<azure-region>"
+  TF_STATE_STORAGE_ACCOUNT = "<project>tfstate01"
+  TF_STATE_CONTAINER      = "tfstate"
+  TF_STATE_KEY_DEV        = "envs/dev/terraform.tfstate"
+  TF_STATE_KEY_PROD       = "envs/prod/terraform.tfstate"
 }
 
 # Optional: secrets used only in CI/CD context
 secret_variables = {
-  # EXAMPLE_SECRET = "<secret-value>"
+  # Optional: base64 content of infra/terraform/envs/dev/terraform.tfvars
+  TFVARS_DEV_B64 = "<base64-dev-terraform-tfvars>"
+  # Optional: base64 content of infra/terraform/envs/prod/terraform.tfvars
+  TFVARS_PROD_B64 = "<base64-prod-terraform-tfvars>"
 }

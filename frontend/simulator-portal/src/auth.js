@@ -21,6 +21,17 @@ export async function login(email, password) {
   return payload;
 }
 
+export async function register(email, password, role) {
+  return apiFetch("/auth/register", {
+    method: "POST",
+    body: {
+      email,
+      password,
+      role,
+    },
+  });
+}
+
 export async function me() {
   if (!accessToken) {
     throw new Error("No token found. Please login first.");
