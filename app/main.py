@@ -1,0 +1,104 @@
+import json
+import logging
+import time
+import uuid
+
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from jose import JWTError, jwt
+
+from app.api.routes_auth import router as auth_router
+from app.api.routes_health import router as health_router
+from app.api.routes_models import router as models_router
+from app.api.routes_predictions import router as predictions_router
+from app.core.config import get_settings
+from app.db.session import Base, engine
+
+settings = get_settings()
+Base.metadata.create_all(bind=engine)
+logger = logging.getLogger("energypredict.request")
+
+app = FastAPI(title=settings.app_name)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allowed_origins_list,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+app.include_router(health_router, prefix=settings.api_v1_prefix)
+app.include_router(auth_router, prefix=settings.api_v1_prefix)
+app.include_router(predictions_router, prefix=settings.api_v1_prefix)
+app.include_router(models_router, prefix=settings.api_v1_prefix)
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    if settings.environment == "prod":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
+def _identity_from_jwt(request: Request) -> tuple[str, str]:
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return "anonymous", "anonymous"
+
+    token = auth_header[7:].strip()
+    if not token:
+        return "anonymous", "anonymous"
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+            issuer=settings.jwt_issuer,
+        )
+        user = payload.get("email", "unknown")
+        role = payload.get("role", "unknown")
+        return str(user), str(role)
+    except JWTError:
+        return "invalid_token", "unknown"
+
+
+@app.middleware("http")
+async def request_trace_logging_middleware(request: Request, call_next):
+    started_at = time.perf_counter()
+    trace_id = request.headers.get("X-Trace-Id") or request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    user, role = _identity_from_jwt(request)
+    status_code = 500
+
+    try:
+        response: Response = await call_next(request)
+        status_code = response.status_code
+    finally:
+        elapsed_ms = round((time.perf_counter() - started_at) * 1000, 2)
+        route = request.url.path
+        route_obj = request.scope.get("route")
+        if route_obj and getattr(route_obj, "path", None):
+            route = route_obj.path
+
+        logger.info(
+            json.dumps(
+                {
+                    "trace_id": trace_id,
+                    "method": request.method,
+                    "route": route,
+                    "status": status_code,
+                    "latency_ms": elapsed_ms,
+                    "user": user,
+                    "role": role,
+                }
+            )
+        )
+
+    response.headers["X-Trace-Id"] = trace_id
+    return response

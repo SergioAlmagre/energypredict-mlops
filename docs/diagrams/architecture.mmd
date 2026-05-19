@@ -1,0 +1,41 @@
+﻿flowchart LR
+    subgraph Data[Data Layer]
+      S1[Sensores industriales]
+      S2[Snowflake historico]
+    end
+
+    subgraph API[Serving Layer]
+      A1[FastAPI]
+      A2[JWT + Roles]
+      A3[Endpoints predict train model]
+    end
+
+    subgraph ML[MLOps Layer]
+      M1[Databricks Job]
+      M2[PySpark Feature Eng]
+      M3[MLflow Tracking + Registry]
+      M4[Modelo Production]
+    end
+
+    subgraph Platform[Platform Layer]
+      P1[Docker Image]
+      P2[AKS Pods]
+      P3[Service + Ingress]
+      P4[API Management]
+      P5[DNS corporativo]
+    end
+
+    subgraph Ops[Ops Layer]
+      O1[CI test build scan]
+      O2[CD dev prod]
+      O3[Observabilidad]
+    end
+
+    S1 --> A1
+    A1 --> M4
+    A1 --> M3
+    S2 --> M1
+    M1 --> M2 --> M3 --> M4
+    A1 --> P1 --> P2 --> P3 --> P4 --> P5
+    O1 --> O2 --> P2
+    O3 --> P2

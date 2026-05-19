@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: energypredict-dev
+resources:
+  - namespace.yaml
+  - ../../base
+nameSuffix: -dev
+replicas:
+  - name: energypredict-api
+    count: 1
+images:
+  - name: energypredictacr.azurecr.io/energypredict-api
+    newTag: dev-latest
+patches:
+  - path: patch-configmap.yaml
+  - path: patch-serviceaccount.yaml
+  - path: patch-secretproviderclass.yaml
+  - path: patch-ingress.yaml
+  - path: patch-hpa.yaml

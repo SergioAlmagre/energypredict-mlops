@@ -1,0 +1,4 @@
+﻿window.__ENERGYPREDICT_CONFIG__ = {
+  API_BASE_URL: "__API_BASE_URL__",
+  APP_ENV: "__APP_ENV__",
+};

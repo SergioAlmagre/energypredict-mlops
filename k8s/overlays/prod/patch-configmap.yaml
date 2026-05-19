@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: energypredict-config
+data:
+  ENVIRONMENT: "prod"
+  LOG_LEVEL: "INFO"
+  MODEL_STAGE: "production"

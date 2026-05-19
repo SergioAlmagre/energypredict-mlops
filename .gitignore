@@ -1,0 +1,19 @@
+# Local environment
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+*.db
+*.log
+
+# Terraform local artifacts
+infra/terraform/**/.terraform/
+infra/terraform/**/.terraform.lock.hcl
+infra/terraform/**/terraform.tfvars
+infra/terraform/**/tfplan
+infra/terraform/**/*.tfstate
+infra/terraform/**/*.tfstate.*
+
+# Private content (not for public repo)
+/private-defense/

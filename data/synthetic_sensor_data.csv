@@ -1,0 +1,7 @@
+asset_code,temperature,pressure,vibration,flow_rate,energy_consumption,operating_hours,failure_next_7_days
+PUMP-001,91.2,7.8,0.82,120.3,430.1,5020,1
+PUMP-002,67.5,5.1,0.23,151.0,390.5,2201,0
+PUMP-003,88.0,7.2,0.75,110.0,420.0,4700,1
+PUMP-004,60.0,4.0,0.18,160.0,320.0,1800,0
+PUMP-005,85.0,6.9,0.65,130.0,410.0,3900,1
+PUMP-006,55.0,3.9,0.12,170.0,300.0,1200,0

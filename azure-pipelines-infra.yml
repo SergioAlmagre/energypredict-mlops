@@ -1,0 +1,118 @@
+name: energypredict-infra-cicd-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+variables:
+  - group: energypredict-shared
+
+stages:
+  - stage: Terraform_Plan_Dev
+    displayName: Terraform Plan Dev
+    jobs:
+      - job: plan_dev
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.9.8'
+
+          - task: AzureCLI@2
+            displayName: Terraform Init/Plan (dev)
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                cd infra/terraform/envs/dev
+                terraform init
+                terraform validate
+                terraform plan -out tfplan
+
+  - stage: Terraform_Apply_Dev
+    displayName: Terraform Apply Dev
+    dependsOn: Terraform_Plan_Dev
+    jobs:
+      - deployment: apply_dev
+        environment: energypredict-dev-infra
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: '1.9.8'
+
+                - task: AzureCLI@2
+                  displayName: Terraform Apply (dev)
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      cd infra/terraform/envs/dev
+                      terraform init
+                      terraform apply -auto-approve
+
+  - stage: Terraform_Plan_Prod
+    displayName: Terraform Plan Prod
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: plan_prod
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.9.8'
+
+          - task: AzureCLI@2
+            displayName: Terraform Init/Plan (prod)
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                cd infra/terraform/envs/prod
+                terraform init
+                terraform validate
+                terraform plan -out tfplan
+
+  - stage: Terraform_Apply_Prod
+    displayName: Terraform Apply Prod
+    dependsOn: Terraform_Plan_Prod
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: apply_prod
+        environment: energypredict-prod-infra
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: '1.9.8'
+
+                - task: AzureCLI@2
+                  displayName: Terraform Apply (prod)
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      cd infra/terraform/envs/prod
+                      terraform init
+                      terraform apply -auto-approve

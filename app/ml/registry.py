@@ -1,0 +1,109 @@
+﻿from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List
+
+import joblib
+
+MODELS_DIR = Path("models")
+REGISTRY_PATH = MODELS_DIR / "registry.json"
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _default_registry() -> Dict[str, Any]:
+    return {"models": [], "production_model_id": None, "training_runs": []}
+
+
+def load_registry() -> Dict[str, Any]:
+    if not REGISTRY_PATH.exists():
+        return _default_registry()
+    return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+
+
+def save_registry(registry: Dict[str, Any]) -> None:
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    REGISTRY_PATH.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+
+
+def register_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    registry = load_registry()
+    registry["models"].append(metadata)
+    if metadata.get("stage") == "production":
+        registry["production_model_id"] = metadata["model_id"]
+    save_registry(registry)
+    return metadata
+
+
+def register_training_run(run: Dict[str, Any]) -> Dict[str, Any]:
+    registry = load_registry()
+    registry["training_runs"].append(run)
+    save_registry(registry)
+    return run
+
+
+def update_training_run(run_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    registry = load_registry()
+    for run in registry["training_runs"]:
+        if run["run_id"] == run_id:
+            run.update(updates)
+            save_registry(registry)
+            return run
+    raise ValueError(f"Run not found: {run_id}")
+
+
+def list_training_runs_data() -> List[Dict[str, Any]]:
+    return load_registry().get("training_runs", [])
+
+
+def list_models() -> List[Dict[str, Any]]:
+    return load_registry().get("models", [])
+
+
+def get_current_model_metadata() -> Dict[str, Any]:
+    registry = load_registry()
+    prod_id = registry.get("production_model_id")
+    if prod_id:
+        for model in registry.get("models", []):
+            if model["model_id"] == prod_id:
+                return model
+    models = registry.get("models", [])
+    if not models:
+        raise FileNotFoundError("No models are registered yet")
+    return models[-1]
+
+
+def load_current_model():
+    metadata = get_current_model_metadata()
+    model_path = Path(metadata["artifact_uri"])
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model artifact not found: {model_path}")
+    return joblib.load(model_path), metadata
+
+
+def promote_model(model_id: str, target_stage: str = "production") -> Dict[str, Any]:
+    if target_stage != "production":
+        raise ValueError("Only promotion to production is supported in MVP")
+
+    registry = load_registry()
+    models = registry.get("models", [])
+    target_model = None
+
+    for model in models:
+        if model.get("stage") == "production":
+            model["stage"] = "archived"
+        if model["model_id"] == model_id:
+            target_model = model
+
+    if not target_model:
+        raise ValueError(f"Model not found: {model_id}")
+
+    target_model["stage"] = "production"
+    target_model["promoted_at"] = _now_iso()
+    registry["production_model_id"] = model_id
+    save_registry(registry)
+    return target_model

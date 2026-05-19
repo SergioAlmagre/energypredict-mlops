@@ -1,0 +1,83 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EnergyPredict Simulator Portal</title>
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <p class="badge">EnergyPredict Platform</p>
+        <h1>Predictive Maintenance Simulator</h1>
+        <p class="subtitle">Professional UI over simulated data, wired to real API flows for validation scenarios.</p>
+      </div>
+      <div class="env-panel">
+        <label for="apiBaseUrl">API Base URL</label>
+        <input id="apiBaseUrl" type="url" placeholder="https://api-dev.example.com/api/v1" />
+        <button id="saveApiUrlBtn" type="button">Save</button>
+        <p class="hint">Examples: http://localhost:8000/api/v1, https://api-dev.energypredict.example.com/api/v1</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card">
+        <h2>Authentication</h2>
+        <form id="loginForm" class="stack">
+          <label>Email</label>
+          <input id="email" type="email" required />
+          <label>Password</label>
+          <input id="password" type="password" required />
+          <button type="submit">Login</button>
+        </form>
+        <div id="authStatus" class="status">Not authenticated</div>
+      </section>
+
+      <section class="card">
+        <h2>Platform Health</h2>
+        <div class="controls">
+          <button id="checkHealthBtn" type="button">Check Liveness / Readiness</button>
+          <button id="checkIntegrationsBtn" type="button">Check Integrations</button>
+        </div>
+        <pre id="healthOutput" class="output">No checks executed yet.</pre>
+      </section>
+
+      <section class="card wide">
+        <h2>Run Prediction</h2>
+        <form id="predictionForm" class="grid">
+          <label>Asset Code</label>
+          <input id="assetCode" value="ASSET-001" required />
+
+          <label>Temperature C</label>
+          <input id="temperature" type="number" value="82" step="0.1" required />
+
+          <label>Vibration mm/s</label>
+          <input id="vibration" type="number" value="4.4" step="0.1" required />
+
+          <label>Pressure bar</label>
+          <input id="pressure" type="number" value="7.1" step="0.1" required />
+
+          <label>Flow Rate</label>
+          <input id="flowRate" type="number" value="24.5" step="0.1" required />
+
+          <label>Energy Consumption</label>
+          <input id="energyConsumption" type="number" value="356.7" step="0.1" required />
+
+          <label>Operating Hours</label>
+          <input id="operatingHours" type="number" value="2150" required />
+
+          <button type="submit" class="full">Predict Failure Risk</button>
+        </form>
+        <pre id="predictionOutput" class="output">No prediction yet.</pre>
+      </section>
+    </main>
+
+    <footer>
+      <p>EnergyPredict simulator portal | Static Web App HTTPS + AKS API</p>
+    </footer>
+
+    <script src="./config.js"></script>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

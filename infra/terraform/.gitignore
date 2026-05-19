@@ -1,0 +1,8 @@
+# Ignore local tfstate and sensitive variable files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars

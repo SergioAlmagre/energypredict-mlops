@@ -1,0 +1,15 @@
+﻿{
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/styles/*", "/src/*", "/config.js", "/staticwebapp.config.json"]
+  },
+  "mimeTypes": {
+    ".json": "text/json"
+  }
+}
