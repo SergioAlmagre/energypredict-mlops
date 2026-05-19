@@ -249,25 +249,78 @@ Pipeline: `azure-pipelines-frontend.yml`
 ## 8.1 AKS
 ```bash
 az aks get-credentials -g <RG> -n <AKS_NAME> --overwrite-existing
+kubectl get nodes
 kubectl get ns
+kubectl get pods
 kubectl get pods -n energypredict-dev
 kubectl get pods -n energypredict-prod
+kubectl get pods -A
 ```
 
-## 8.2 Health API
+Nota:
+- `kubectl get pods` sin `-n` consulta `default`.
+- La app esta desplegada en `energypredict-dev` o `energypredict-prod`.
+
+## 8.2 Estado de deployment, replicas y rollout
+```bash
+kubectl -n energypredict-prod get deploy,rs,pods
+kubectl -n energypredict-prod rollout status deploy/energypredict-api-prod
+kubectl -n energypredict-prod rollout history deploy/energypredict-api-prod
+```
+
+## 8.3 Service, Ingress y DNS
+```bash
+kubectl -n energypredict-prod get svc,ingress
+kubectl -n energypredict-prod describe ingress energypredict-api-prod
+nslookup <host-del-ingress>
+```
+
+## 8.4 Health API
 ```bash
 kubectl port-forward svc/energypredict-api-dev 8080:80 -n energypredict-dev
 curl http://localhost:8080/api/v1/health/live
 curl http://localhost:8080/api/v1/health/ready
+
+kubectl port-forward svc/energypredict-api-prod 8081:80 -n energypredict-prod
+curl http://localhost:8081/api/v1/health/live
+curl http://localhost:8081/api/v1/health/ready
 ```
 
-## 8.3 Portal frontend
+## 8.5 HPA y capacidad de cluster
+```bash
+kubectl -n energypredict-prod get hpa
+kubectl top nodes
+kubectl -n energypredict-prod top pods
+```
+
+## 8.6 Eventos y diagnostico rapido de fallos
+```bash
+kubectl -n energypredict-prod get events --sort-by=.metadata.creationTimestamp | tail -n 40
+kubectl -n energypredict-prod describe deploy energypredict-api-prod
+kubectl -n energypredict-prod describe pod <pod-name>
+kubectl -n energypredict-prod logs <pod-name> --tail=200
+kubectl -n energypredict-prod logs <pod-name> --previous --tail=200
+```
+
+Checks de error comunes:
+```bash
+kubectl -n energypredict-prod get pods
+kubectl -n energypredict-prod describe pod <pod-name> | grep -E "FailedMount|ErrImagePull|ImagePullBackOff|FailedScheduling"
+```
+
+## 8.7 Verificacion de imagen desplegada y variable CORS
+```bash
+kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath="{.spec.template.spec.containers[0].image}"
+kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath="{.spec.template.spec.containers[0].env}"
+```
+
+## 8.8 Portal frontend
 - Abrir URL HTTPS de SWA.
 - Confirmar login.
 - Ejecutar prediccion desde UI.
 - Revisar salida JSON.
 
-## 8.4 CSI + Workload Identity (dev)
+## 8.9 CSI + Workload Identity (dev)
 ```bash
 kubectl apply -k k8s/overlays/dev
 kubectl get sa -n energypredict-dev
@@ -277,23 +330,21 @@ kubectl get secret energypredict-secrets -n energypredict-dev
 kubectl describe pod -n energypredict-dev <pod-name>
 ```
 
-## 8.5 CI/CD en Azure DevOps
+## 8.10 CSI + Workload Identity (prod)
+```bash
+kubectl get sa -n energypredict-prod
+kubectl get secretproviderclass -n energypredict-prod
+kubectl get secret energypredict-secrets -n energypredict-prod
+kubectl describe pod -n energypredict-prod <pod-name>
+```
+
+## 8.11 CI/CD en Azure DevOps
 1. Verificar estado exitoso de:
 - `azure-pipelines-infra.yml`
 - `azure-pipelines-app.yml`
 - `azure-pipelines-frontend.yml`
 
-2. Verificar imagen desplegada:
-```bash
-kubectl get deploy energypredict-api-dev -n energypredict-dev -o jsonpath="{.spec.template.spec.containers[0].image}"
-```
-
-3. Verificar CORS inyectado:
-```bash
-kubectl get deploy energypredict-api-dev -n energypredict-dev -o jsonpath="{.spec.template.spec.containers[0].env}"
-```
-
-## 8.6 Trazabilidad HTTP (middleware)
+## 8.12 Trazabilidad HTTP (middleware)
 La API incluye middleware de trazabilidad por request. Loguea:
 - `trace_id`
 - `method`
@@ -315,11 +366,15 @@ curl -H "X-Trace-Id: demo-trace-001" http://localhost:8080/api/v1/health/live
 
 Debes ver `X-Trace-Id` en respuesta y el mismo `trace_id` en logs.
 
-## 8.7 Rollback
+## 8.13 Rollback
 ```bash
 kubectl rollout history deployment/energypredict-api-dev -n energypredict-dev
 kubectl rollout undo deployment/energypredict-api-dev -n energypredict-dev
 kubectl rollout status deployment/energypredict-api-dev -n energypredict-dev
+
+kubectl rollout history deployment/energypredict-api-prod -n energypredict-prod
+kubectl rollout undo deployment/energypredict-api-prod -n energypredict-prod
+kubectl rollout status deployment/energypredict-api-prod -n energypredict-prod
 ```
 
 ## 9. Seguridad y secretos
