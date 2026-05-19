@@ -36,6 +36,7 @@ stages:
               python -m pip install --upgrade pip
               pip install -r requirements.txt
               pip install ruff
+              pip install bandit pip-audit
             displayName: Install dependencies
 
           - script: python -m ruff check app tests
@@ -43,6 +44,33 @@ stages:
 
           - script: python -m pytest -q
             displayName: Tests
+
+          - script: |
+              set -euo pipefail
+              if python - <<'PY'
+from pathlib import Path
+import sys
+tests = Path("tests")
+if not tests.exists():
+    sys.exit(1)
+for p in tests.rglob("*.py"):
+    if "@pytest.mark.integration" in p.read_text(encoding="utf-8", errors="ignore"):
+        sys.exit(0)
+sys.exit(1)
+PY
+              then
+                python -m pytest -q -m integration
+              else
+                echo "No integration tests found with @pytest.mark.integration. Skipping."
+              fi
+            displayName: Integration tests (if present)
+
+          - script: python -m bandit -r app -lll
+            displayName: Security SAST (Bandit)
+
+          - script: python -m pip_audit -r requirements.txt
+            displayName: Dependency audit (pip-audit, advisory)
+            continueOnError: true
 
           - script: docker build -t $(IMAGE_NAME):ci-$(Build.SourceVersion) .
             displayName: Docker build (validation)

@@ -32,6 +32,42 @@ stages:
               test -f frontend/simulator-portal/config.template.js
             displayName: Validate static portal files
 
+          - script: |
+              set -euo pipefail
+              python3 - <<'PY'
+import json
+from pathlib import Path
+
+cfg = Path("frontend/simulator-portal/staticwebapp.config.json")
+data = json.loads(cfg.read_text(encoding="utf-8"))
+headers = data.get("globalHeaders", {})
+required = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": None,
+    "Permissions-Policy": None,
+}
+missing = []
+for key, value in required.items():
+    if key not in headers:
+        missing.append(key)
+    elif value is not None and headers.get(key) != value:
+        missing.append(f"{key} (expected {value})")
+if missing:
+    raise SystemExit(f"Missing/invalid security headers in staticwebapp.config.json: {', '.join(missing)}")
+print("Frontend security headers baseline OK.")
+PY
+            displayName: Frontend security headers check
+
+          - script: |
+              set -euo pipefail
+              if grep -RInE "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z\\-_]{20,})" frontend/simulator-portal; then
+                echo "Potential hardcoded secrets detected in frontend files."
+                exit 1
+              fi
+              echo "No obvious hardcoded secret patterns found in frontend."
+            displayName: Frontend secret-pattern scan
+
   - stage: Deploy_Dev
     displayName: Deploy Frontend Dev
     dependsOn: Validate_Frontend

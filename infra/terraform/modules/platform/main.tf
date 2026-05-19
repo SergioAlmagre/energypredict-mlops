@@ -141,6 +141,19 @@ resource "azurerm_role_assignment" "kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
+# Access-policy fallback for workloads using UAMI when the Key Vault is operating
+# in access-policy authorization mode (common in mixed/legacy setups).
+resource "azurerm_key_vault_access_policy" "aks_workload_identity" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.aks.principal_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+  ]
+}
+
 resource "azurerm_databricks_workspace" "this" {
   count = var.enable_databricks ? 1 : 0
 
@@ -202,7 +215,7 @@ resource "azurerm_kubernetes_cluster" "this" {
 resource "azurerm_role_assignment" "aks_pull_acr" {
   scope                = azurerm_container_registry.this.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.aks.principal_id
+  principal_id         = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
 }
 
 resource "azurerm_federated_identity_credential" "aks_workload" {
