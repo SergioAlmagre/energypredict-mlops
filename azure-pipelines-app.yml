@@ -84,6 +84,24 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
+                      debug_rollout() {
+                        local ns="$1"
+                        local deploy="$2"
+                        echo "===== Deployment diagnostics (${ns}/${deploy}) ====="
+                        kubectl get deploy -n "$ns" "$deploy" -o wide || true
+                        kubectl get rs -n "$ns" -l app=energypredict-api -o wide || true
+                        kubectl get pods -n "$ns" -l app=energypredict-api -o wide || true
+                        kubectl describe deploy -n "$ns" "$deploy" || true
+                        local pod
+                        pod="$(kubectl get pods -n "$ns" -l app=energypredict-api -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+                        if [ -n "${pod}" ]; then
+                          kubectl describe pod -n "$ns" "$pod" || true
+                          kubectl logs -n "$ns" "$pod" --tail=200 || true
+                          kubectl logs -n "$ns" "$pod" --previous --tail=200 || true
+                        fi
+                        kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
+                      }
+
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-serviceaccount.yaml
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
@@ -92,7 +110,10 @@ stages:
                       kubectl apply -k k8s/overlays/dev
                       kubectl set image deployment/energypredict-api-dev api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-dev
                       kubectl set env deployment/energypredict-api-dev CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_DEV) -n energypredict-dev
-                      kubectl rollout status deployment/energypredict-api-dev -n energypredict-dev --timeout=180s
+                      if ! kubectl rollout status deployment/energypredict-api-dev -n energypredict-dev --timeout=300s; then
+                        debug_rollout "energypredict-dev" "energypredict-api-dev"
+                        exit 1
+                      fi
 
   - stage: Deploy_Prod
     displayName: Deploy Prod
@@ -116,6 +137,24 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
+                      debug_rollout() {
+                        local ns="$1"
+                        local deploy="$2"
+                        echo "===== Deployment diagnostics (${ns}/${deploy}) ====="
+                        kubectl get deploy -n "$ns" "$deploy" -o wide || true
+                        kubectl get rs -n "$ns" -l app=energypredict-api -o wide || true
+                        kubectl get pods -n "$ns" -l app=energypredict-api -o wide || true
+                        kubectl describe deploy -n "$ns" "$deploy" || true
+                        local pod
+                        pod="$(kubectl get pods -n "$ns" -l app=energypredict-api -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+                        if [ -n "${pod}" ]; then
+                          kubectl describe pod -n "$ns" "$pod" || true
+                          kubectl logs -n "$ns" "$pod" --tail=200 || true
+                          kubectl logs -n "$ns" "$pod" --previous --tail=200 || true
+                        fi
+                        kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
+                      }
+
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-serviceaccount.yaml
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
@@ -124,4 +163,7 @@ stages:
                       kubectl apply -k k8s/overlays/prod
                       kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
                       kubectl set env deployment/energypredict-api-prod CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) -n energypredict-prod
-                      kubectl rollout status deployment/energypredict-api-prod -n energypredict-prod --timeout=300s
+                      if ! kubectl rollout status deployment/energypredict-api-prod -n energypredict-prod --timeout=420s; then
+                        debug_rollout "energypredict-prod" "energypredict-api-prod"
+                        exit 1
+                      fi

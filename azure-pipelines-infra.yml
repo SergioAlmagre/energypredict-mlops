@@ -5,6 +5,8 @@ pr: none
 
 variables:
   - group: energypredict-shared
+  - name: TERRAFORM_VERSION
+    value: '1.9.8'
 
 stages:
   - stage: Terraform_Plan_Dev
@@ -16,9 +18,16 @@ stages:
         steps:
           - checkout: self
 
-          - task: TerraformInstaller@1
-            inputs:
-              terraformVersion: '1.9.8'
+          - script: |
+              set -euo pipefail
+              sudo apt-get update -y
+              sudo apt-get install -y unzip
+              TF_ZIP="terraform_$(TERRAFORM_VERSION)_linux_amd64.zip"
+              curl -fsSL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/${TF_ZIP}" -o "${TF_ZIP}"
+              unzip -o "${TF_ZIP}"
+              sudo mv terraform /usr/local/bin/terraform
+              terraform version
+            displayName: Install Terraform CLI
 
           - task: AzureCLI@2
             displayName: Terraform Init/Plan (dev)
@@ -45,9 +54,16 @@ stages:
               steps:
                 - checkout: self
 
-                - task: TerraformInstaller@1
-                  inputs:
-                    terraformVersion: '1.9.8'
+                - script: |
+                    set -euo pipefail
+                    sudo apt-get update -y
+                    sudo apt-get install -y unzip
+                    TF_ZIP="terraform_$(TERRAFORM_VERSION)_linux_amd64.zip"
+                    curl -fsSL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/${TF_ZIP}" -o "${TF_ZIP}"
+                    unzip -o "${TF_ZIP}"
+                    sudo mv terraform /usr/local/bin/terraform
+                    terraform version
+                  displayName: Install Terraform CLI
 
                 - task: AzureCLI@2
                   displayName: Terraform Apply (dev)
@@ -71,9 +87,16 @@ stages:
         steps:
           - checkout: self
 
-          - task: TerraformInstaller@1
-            inputs:
-              terraformVersion: '1.9.8'
+          - script: |
+              set -euo pipefail
+              sudo apt-get update -y
+              sudo apt-get install -y unzip
+              TF_ZIP="terraform_$(TERRAFORM_VERSION)_linux_amd64.zip"
+              curl -fsSL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/${TF_ZIP}" -o "${TF_ZIP}"
+              unzip -o "${TF_ZIP}"
+              sudo mv terraform /usr/local/bin/terraform
+              terraform version
+            displayName: Install Terraform CLI
 
           - task: AzureCLI@2
             displayName: Terraform Init/Plan (prod)
@@ -101,9 +124,16 @@ stages:
               steps:
                 - checkout: self
 
-                - task: TerraformInstaller@1
-                  inputs:
-                    terraformVersion: '1.9.8'
+                - script: |
+                    set -euo pipefail
+                    sudo apt-get update -y
+                    sudo apt-get install -y unzip
+                    TF_ZIP="terraform_$(TERRAFORM_VERSION)_linux_amd64.zip"
+                    curl -fsSL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/${TF_ZIP}" -o "${TF_ZIP}"
+                    unzip -o "${TF_ZIP}"
+                    sudo mv terraform /usr/local/bin/terraform
+                    terraform version
+                  displayName: Install Terraform CLI
 
                 - task: AzureCLI@2
                   displayName: Terraform Apply (prod)
