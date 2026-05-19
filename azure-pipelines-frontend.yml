@@ -34,29 +34,12 @@ stages:
 
           - script: |
               set -euo pipefail
-              python3 - <<'PY'
-import json
-from pathlib import Path
-
-cfg = Path("frontend/simulator-portal/staticwebapp.config.json")
-data = json.loads(cfg.read_text(encoding="utf-8"))
-headers = data.get("globalHeaders", {})
-required = {
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-    "Referrer-Policy": None,
-    "Permissions-Policy": None,
-}
-missing = []
-for key, value in required.items():
-    if key not in headers:
-        missing.append(key)
-    elif value is not None and headers.get(key) != value:
-        missing.append(f"{key} (expected {value})")
-if missing:
-    raise SystemExit(f"Missing/invalid security headers in staticwebapp.config.json: {', '.join(missing)}")
-print("Frontend security headers baseline OK.")
-PY
+              CFG="frontend/simulator-portal/staticwebapp.config.json"
+              grep -q '"X-Content-Type-Options"[[:space:]]*:[[:space:]]*"nosniff"' "$CFG"
+              grep -q '"X-Frame-Options"[[:space:]]*:[[:space:]]*"DENY"' "$CFG"
+              grep -q '"Referrer-Policy"[[:space:]]*:' "$CFG"
+              grep -q '"Permissions-Policy"[[:space:]]*:' "$CFG"
+              echo "Frontend security headers baseline OK."
             displayName: Frontend security headers check
 
           - script: |

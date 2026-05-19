@@ -47,17 +47,7 @@ stages:
 
           - script: |
               set -euo pipefail
-              if python - <<'PY'
-from pathlib import Path
-import sys
-tests = Path("tests")
-if not tests.exists():
-    sys.exit(1)
-for p in tests.rglob("*.py"):
-    if "@pytest.mark.integration" in p.read_text(encoding="utf-8", errors="ignore"):
-        sys.exit(0)
-sys.exit(1)
-PY
+              if python -c "from pathlib import Path; import sys; t=Path('tests'); sys.exit(0 if t.exists() and any('@pytest.mark.integration' in p.read_text(encoding='utf-8', errors='ignore') for p in t.rglob('*.py')) else 1)"
               then
                 python -m pytest -q -m integration
               else
