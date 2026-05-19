@@ -1,0 +1,55 @@
+# ===== Required: Azure DevOps access =====
+azuredevops_org_service_url = "https://dev.azure.com/<org>"
+azuredevops_pat             = "<azure-devops-pat>"
+azuredevops_project_name    = "<azure-devops-project>"
+
+# ===== Variable group =====
+variable_group_name = "energypredict-shared"
+description         = "EnergyPredict shared variables (managed by Terraform)"
+allow_access        = true
+
+# ===== Service Connection mode =====
+create_azure_service_connection      = true
+azure_service_connection_name        = "energypredict-azure-rm"
+azure_service_connection_description = "EnergyPredict AzureRM connection (managed by Terraform)"
+
+# Required when create_azure_service_connection = true
+azurerm_subscription_id   = "<subscription-id>"
+azurerm_subscription_name = "<subscription-name>"
+azurerm_spn_tenantid      = "<tenant-id>"
+azurerm_spn_clientid      = "<service-principal-client-id>"
+azurerm_spn_clientsecret  = "<service-principal-client-secret>"
+
+# ===== Non-secret pipeline variables =====
+variables = {
+  AZURE_SERVICE_CONNECTION = "energypredict-azure-rm"
+  AZURE_TENANT_ID          = "<tenant-id>"
+
+  ACR_NAME               = "<acr-name-dev>"
+  AKS_DEV_RESOURCE_GROUP = "<rg-dev>"
+  AKS_DEV_CLUSTER_NAME   = "<aks-dev>"
+  KEY_VAULT_NAME_DEV     = "<kv-dev>"
+
+  AKS_PROD_RESOURCE_GROUP = "<rg-prod>"
+  AKS_PROD_CLUSTER_NAME   = "<aks-prod>"
+  KEY_VAULT_NAME_PROD     = "<kv-prod>"
+
+  AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV  = "<uami-client-id-dev>"
+  AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD = "<uami-client-id-prod>"
+
+  CORS_ALLOWED_ORIGINS_DEV  = "https://<frontend-dev-host>"
+  CORS_ALLOWED_ORIGINS_PROD = "https://<frontend-prod-host>"
+
+  STATIC_WEB_APP_DEV_NAME            = "<swa-dev-name>"
+  STATIC_WEB_APP_DEV_RESOURCE_GROUP  = "<swa-dev-rg>"
+  STATIC_WEB_APP_PROD_NAME           = "<swa-prod-name>"
+  STATIC_WEB_APP_PROD_RESOURCE_GROUP = "<swa-prod-rg>"
+
+  FRONTEND_DEV_API_BASE_URL  = "https://<api-dev-host>/api/v1"
+  FRONTEND_PROD_API_BASE_URL = "https://<api-prod-host>/api/v1"
+}
+
+# Optional: secrets used only in CI/CD context
+secret_variables = {
+  # EXAMPLE_SECRET = "<secret-value>"
+}

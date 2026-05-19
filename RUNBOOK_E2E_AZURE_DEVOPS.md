@@ -65,6 +65,10 @@ terraform plan -out tfplan
 - `infra/terraform/envs/dev/terraform.tfvars`
 - `infra/terraform/envs/prod/terraform.tfvars`
 - `infra/terraform/devops/terraform.tfvars`
+- Plantillas publicables (sin secretos):
+- `infra/terraform/envs/dev/terraform.tfvars.example`
+- `infra/terraform/envs/prod/terraform.tfvars.example`
+- `infra/terraform/devops/terraform.tfvars.example`
 
 Cada stack usa su propio `terraform.tfvars` segun el directorio donde ejecutes Terraform.
 
@@ -185,6 +189,34 @@ Sin confirmacion interactiva:
 ```powershell
 terraform destroy -auto-approve
 ```
+
+## 5.6 Estrategia de apply en orden (de mas conservadora a menos conservadora)
+
+1. Opcion A (mas conservadora): mantener `prod` en la misma region y pedir cuota
+- No cambia arquitectura ni nombres.
+- Requiere subida de cuota vCPU en Azure para la region de `prod`.
+- Comandos utiles:
+```bash
+az vm list-usage -l westeurope -o table
+az aks get-versions -l westeurope -o table
+```
+
+2. Opcion B: mantener region, bajar tamano temporal de AKS `prod`
+- Reducir en `infra/terraform/envs/prod/terraform.tfvars`:
+- `node_count = 1`
+- `node_vm_size` a un SKU permitido por tu suscripcion.
+- Reintentar `plan/apply`.
+
+3. Opcion C: mover solo `prod` a una region con cuota disponible
+- Cambiar `location` en `infra/terraform/envs/prod/terraform.tfvars`.
+- Recomendada cuando la cuota en region actual es 0.
+- Requiere recreacion parcial o total de recursos de `prod`.
+
+4. Opcion D (menos conservadora): liberar cuota destruyendo temporalmente `dev`
+- Ejecutar `terraform destroy` en `envs/dev`.
+- Aplicar `prod`.
+- Volver a crear `dev`.
+- Es valida para demo/practica, no ideal para operacion continua.
 
 ## 6. Despliegue backend en AKS
 

@@ -50,6 +50,11 @@ variable "kubernetes_version" {
   default = null
 }
 
+variable "aks_location" {
+  type    = string
+  default = null
+}
+
 variable "node_count" {
   type    = number
   default = 2
@@ -132,6 +137,11 @@ variable "enable_postgresql" {
 }
 
 variable "postgresql_server_name" {
+  type    = string
+  default = null
+}
+
+variable "postgresql_location" {
   type    = string
   default = null
 }

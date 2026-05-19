@@ -18,9 +18,10 @@ locals {
     )
   } : {}
 
-  effective_app_secrets = merge(var.key_vault_app_secrets, local.generated_app_secrets)
-  effective_namespace   = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
-  effective_sa_name     = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  effective_app_secrets  = merge(var.key_vault_app_secrets, local.generated_app_secrets)
+  effective_namespace    = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
+  effective_sa_name      = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  effective_aks_location = coalesce(var.aks_location, azurerm_resource_group.this.location)
 }
 
 data "azurerm_client_config" "current" {}
@@ -51,7 +52,7 @@ resource "azurerm_container_registry" "this" {
 
 resource "azurerm_user_assigned_identity" "aks" {
   name                = "${var.aks_name}-uami"
-  location            = azurerm_resource_group.this.location
+  location            = local.effective_aks_location
   resource_group_name = azurerm_resource_group.this.name
   tags                = local.base_tags
 }
@@ -68,32 +69,52 @@ resource "azurerm_key_vault" "this" {
   tags                          = local.base_tags
 }
 
+resource "azurerm_key_vault_access_policy" "terraform_operator" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Purge",
+    "Recover",
+  ]
+}
+
 resource "azurerm_key_vault_secret" "app_secrets" {
   for_each = local.effective_app_secrets
 
   name         = replace(each.key, "_", "-")
   value        = each.value
   key_vault_id = azurerm_key_vault.this.id
+
+  depends_on = [azurerm_key_vault_access_policy.terraform_operator]
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
   count = var.enable_postgresql ? 1 : 0
 
   name                   = coalesce(var.postgresql_server_name, "${var.project_name}-${var.environment}-pg")
-  location               = azurerm_resource_group.this.location
+  location               = coalesce(var.postgresql_location, azurerm_resource_group.this.location)
   resource_group_name    = azurerm_resource_group.this.name
   version                = var.postgresql_version
   delegated_subnet_id    = null
   private_dns_zone_id    = null
   administrator_login    = var.postgresql_admin_username
   administrator_password = var.postgresql_admin_password
-  zone                   = "1"
   sku_name               = var.postgresql_sku_name
   storage_mb             = var.postgresql_storage_mb
 
   public_network_access_enabled = var.postgresql_public_access_enabled
 
   tags = local.base_tags
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "this" {
@@ -143,7 +164,7 @@ resource "azurerm_static_web_app" "this" {
 
 resource "azurerm_kubernetes_cluster" "this" {
   name                      = var.aks_name
-  location                  = azurerm_resource_group.this.location
+  location                  = local.effective_aks_location
   resource_group_name       = azurerm_resource_group.this.name
   dns_prefix                = "${var.project_name}-${var.environment}"
   kubernetes_version        = var.kubernetes_version
@@ -187,12 +208,11 @@ resource "azurerm_role_assignment" "aks_pull_acr" {
 resource "azurerm_federated_identity_credential" "aks_workload" {
   count = var.enable_workload_identity ? 1 : 0
 
-  name                = "${var.project_name}-${var.environment}-workload-fic"
-  resource_group_name = azurerm_resource_group.this.name
-  parent_id           = azurerm_user_assigned_identity.aks.id
-  audience            = ["api://AzureADTokenExchange"]
-  issuer              = azurerm_kubernetes_cluster.this.oidc_issuer_url
-  subject             = "system:serviceaccount:${local.effective_namespace}:${local.effective_sa_name}"
+  name                      = "${var.project_name}-${var.environment}-workload-fic"
+  user_assigned_identity_id = azurerm_user_assigned_identity.aks.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
+  subject                   = "system:serviceaccount:${local.effective_namespace}:${local.effective_sa_name}"
 }
 
 resource "azurerm_dns_zone" "this" {

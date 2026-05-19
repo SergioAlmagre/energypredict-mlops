@@ -12,6 +12,7 @@ images:
   - name: energypredictacr.azurecr.io/energypredict-api
     newTag: dev-latest
 patches:
+  - path: patch-deployment-secretproviderclass.yaml
   - path: patch-configmap.yaml
   - path: patch-serviceaccount.yaml
   - path: patch-secretproviderclass.yaml
