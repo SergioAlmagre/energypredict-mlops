@@ -12,7 +12,7 @@ stages:
     jobs:
       - job: plan_dev
         pool:
-          vmImage: ubuntu-latest
+          vmImage: ubuntu-22.04
         steps:
           - checkout: self
 
@@ -67,7 +67,7 @@ stages:
     jobs:
       - job: plan_prod
         pool:
-          vmImage: ubuntu-latest
+          vmImage: ubuntu-22.04
         steps:
           - checkout: self
 

@@ -21,7 +21,7 @@ stages:
     jobs:
       - job: validate
         pool:
-          vmImage: ubuntu-latest
+          vmImage: ubuntu-22.04
         steps:
           - checkout: self
 
