@@ -13,6 +13,7 @@ module "platform" {
   dns_zone_name                          = var.dns_zone_name
   dns_resource_group_name                = var.dns_resource_group_name
   kubernetes_version                     = var.kubernetes_version
+  aks_location                           = var.aks_location
   node_count                             = var.node_count
   node_vm_size                           = var.node_vm_size
   enable_databricks                      = var.enable_databricks
@@ -29,6 +30,7 @@ module "platform" {
   key_vault_app_secrets                  = var.key_vault_app_secrets
   enable_postgresql                      = var.enable_postgresql
   postgresql_server_name                 = var.postgresql_server_name
+  postgresql_location                    = var.postgresql_location
   postgresql_database_name               = var.postgresql_database_name
   postgresql_admin_username              = var.postgresql_admin_username
   postgresql_admin_password              = var.postgresql_admin_password

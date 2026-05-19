@@ -10,6 +10,10 @@ variable "create_dns_zone" { type = bool }
 variable "dns_zone_name" { type = string }
 variable "dns_resource_group_name" { type = string }
 variable "kubernetes_version" { type = string }
+variable "aks_location" {
+  type    = string
+  default = null
+}
 variable "node_count" { type = number }
 variable "node_vm_size" { type = string }
 variable "tags" { type = map(string) }
@@ -53,6 +57,7 @@ variable "key_vault_app_secrets" {
 }
 variable "enable_postgresql" { type = bool }
 variable "postgresql_server_name" { type = string }
+variable "postgresql_location" { type = string }
 variable "postgresql_database_name" { type = string }
 variable "postgresql_admin_username" { type = string }
 variable "postgresql_admin_password" {
