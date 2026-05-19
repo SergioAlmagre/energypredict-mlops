@@ -76,10 +76,29 @@ stages:
 
                       API_BASE_URL="$(FRONTEND_DEV_API_BASE_URL)"
                       az aks get-credentials --resource-group $(AKS_DEV_RESOURCE_GROUP) --name $(AKS_DEV_CLUSTER_NAME) --overwrite-existing
+                      echo "Waiting for backend deployment availability in dev..."
+                      for _ in $(seq 1 40); do
+                        AVAILABLE="$(kubectl -n energypredict-dev get deploy energypredict-api-dev -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                        if [ -n "${AVAILABLE}" ] && [ "${AVAILABLE}" -ge 1 ] 2>/dev/null; then
+                          break
+                        fi
+                        sleep 15
+                      done
+
+                      AVAILABLE="$(kubectl -n energypredict-dev get deploy energypredict-api-dev -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                      if [ -z "${AVAILABLE}" ] || [ "${AVAILABLE}" -lt 1 ] 2>/dev/null; then
+                        echo "Backend deploy not ready in dev (energypredict-api-dev). Run app pipeline first."
+                        exit 1
+                      fi
+
                       API_HOST="$(kubectl -n energypredict-dev get ingress energypredict-api-dev -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
                       if [ -n "${API_HOST}" ]; then
                         API_SCHEME="${FRONTEND_API_SCHEME_DEV:-http}"
                         API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+                      if [ -z "${API_BASE_URL}" ]; then
+                        echo "API_BASE_URL is empty in dev and ingress host is unavailable."
+                        exit 1
                       fi
 
                       sed \
@@ -127,10 +146,29 @@ stages:
 
                       API_BASE_URL="$(FRONTEND_PROD_API_BASE_URL)"
                       az aks get-credentials --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --overwrite-existing
+                      echo "Waiting for backend deployment availability in prod..."
+                      for _ in $(seq 1 40); do
+                        AVAILABLE="$(kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                        if [ -n "${AVAILABLE}" ] && [ "${AVAILABLE}" -ge 1 ] 2>/dev/null; then
+                          break
+                        fi
+                        sleep 15
+                      done
+
+                      AVAILABLE="$(kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                      if [ -z "${AVAILABLE}" ] || [ "${AVAILABLE}" -lt 1 ] 2>/dev/null; then
+                        echo "Backend deploy not ready in prod (energypredict-api-prod). Run app pipeline first."
+                        exit 1
+                      fi
+
                       API_HOST="$(kubectl -n energypredict-prod get ingress energypredict-api-prod -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
                       if [ -n "${API_HOST}" ]; then
                         API_SCHEME="${FRONTEND_API_SCHEME_PROD:-http}"
                         API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+                      if [ -z "${API_BASE_URL}" ]; then
+                        echo "API_BASE_URL is empty in prod and ingress host is unavailable."
+                        exit 1
                       fi
 
                       sed \

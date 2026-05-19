@@ -17,6 +17,22 @@ Este runbook describe el flujo completo para operar EnergyPredict en Azure con s
 - CI/CD del portal estatico (`frontend/simulator-portal`).
 - Deploy a Azure Static Web App con HTTPS.
 
+## 1.1 Orden recomendado entre pipelines
+Orden operativo recomendado:
+1. `azure-pipelines-infra.yml`
+2. `azure-pipelines-app.yml`
+3. `azure-pipelines-frontend.yml`
+
+Importante:
+- Aunque `app` y `frontend` tengan trigger por commit en `dev/main`, Azure DevOps no garantiza ejecucion secuencial estricta entre pipelines distintos.
+- Para reducir errores de orden, el pipeline de frontend valida que el deployment backend en AKS este `available` antes de publicar.
+- Si no esta listo, frontend falla con mensaje explicito: ejecutar primero pipeline `app`.
+
+Practica recomendada para entrevistas/demos:
+1. Ejecutar `infra`.
+2. Ejecutar `app` y verificar rollout.
+3. Ejecutar `frontend`.
+
 ## 2. Recursos Azure esperados
 
 Provisionados por Terraform (modulo `infra/terraform/modules/platform`):
@@ -116,6 +132,18 @@ Variables minimas:
 4. Terraform tfvars via Library (opcional, secretos base64)
 - `TFVARS_DEV_B64`
 - `TFVARS_PROD_B64`
+
+Generacion automatica de esos valores:
+```powershell
+.\scripts\generate_tfvars_b64.ps1
+```
+
+Pasos en Azure DevOps:
+1. Ir a `Pipelines > Library > Variable groups > energypredict-shared`.
+2. Crear/actualizar:
+- `TFVARS_DEV_B64` (marcar como secret).
+- `TFVARS_PROD_B64` (marcar como secret).
+3. Guardar y relanzar pipeline `azure-pipelines-infra.yml`.
 
 ## 4.3 Environments recomendados
 - `energypredict-dev-infra`

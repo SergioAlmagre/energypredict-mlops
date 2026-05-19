@@ -99,6 +99,16 @@ Para destruir los entornos desplegados y evitar costes fuera de horario:
 .\scripts\destroy_all.ps1
 ```
 
+## CI/CD without tfvars in repo
+Para ejecutar Terraform desde Azure DevOps sin subir `terraform.tfvars`, genera:
+- `TFVARS_DEV_B64`
+- `TFVARS_PROD_B64`
+
+Comando:
+```powershell
+.\scripts\generate_tfvars_b64.ps1
+```
+
 ## API Base Path
 - `/api/v1`
 
