@@ -22,6 +22,14 @@ locals {
   effective_namespace    = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
   effective_sa_name      = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
   effective_aks_location = coalesce(var.aks_location, azurerm_resource_group.this.location)
+  effective_eventhub_namespace_name = coalesce(
+    var.eventhub_namespace_name,
+    "${var.project_name}-${var.environment}-evhns"
+  )
+  effective_eventhub_name = coalesce(
+    var.eventhub_name,
+    "${var.project_name}-${var.environment}-events"
+  )
 }
 
 data "azurerm_client_config" "current" {}
@@ -55,6 +63,36 @@ resource "azurerm_user_assigned_identity" "aks" {
   location            = local.effective_aks_location
   resource_group_name = azurerm_resource_group.this.name
   tags                = local.base_tags
+}
+
+resource "azurerm_eventhub_namespace" "this" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  name                = local.effective_eventhub_namespace_name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = var.eventhub_namespace_sku
+  capacity            = var.eventhub_namespace_sku == "Standard" ? var.eventhub_namespace_capacity : null
+  tags                = local.base_tags
+}
+
+resource "azurerm_eventhub" "this" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  name                = local.effective_eventhub_name
+  namespace_name      = azurerm_eventhub_namespace.this[0].name
+  resource_group_name = azurerm_resource_group.this.name
+  partition_count     = var.eventhub_partition_count
+  message_retention   = var.eventhub_message_retention_days
+}
+
+resource "azurerm_eventhub_consumer_group" "this" {
+  count = var.enable_eventhub_streaming && var.eventhub_consumer_group != "$Default" ? 1 : 0
+
+  name                = var.eventhub_consumer_group
+  namespace_name      = azurerm_eventhub_namespace.this[0].name
+  eventhub_name       = azurerm_eventhub.this[0].name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_key_vault" "this" {
@@ -216,6 +254,14 @@ resource "azurerm_role_assignment" "aks_pull_acr" {
   scope                = azurerm_container_registry.this.id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
+}
+
+resource "azurerm_role_assignment" "aks_eventhub_data_receiver" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  scope                = azurerm_eventhub_namespace.this[0].id
+  role_definition_name = "Azure Event Hubs Data Receiver"
+  principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
 resource "azurerm_federated_identity_credential" "aks_workload" {

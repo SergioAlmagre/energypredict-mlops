@@ -6,6 +6,7 @@ __pycache__/
 .env
 *.db
 *.log
+/artifacts/*.pkl
 
 # Terraform local artifacts
 infra/terraform/**/.terraform/
@@ -17,3 +18,6 @@ infra/terraform/**/*.tfstate.*
 
 # Private content (not for public repo)
 /private-defense/
+
+# Private planning notes (keep public roadmap docs under /docs tracked)
+/docs/*_PRIVATE_PLAN.md

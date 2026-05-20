@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -15,6 +15,7 @@ router = APIRouter(tags=["predictions"])
 @router.post("/predict", response_model=PredictionResponse, status_code=status.HTTP_200_OK)
 def predict(
     payload: PredictionRequest,
+    request: Request,
     db: Session = Depends(get_db),
     _: None = Depends(
         limit_by_ip(
@@ -25,7 +26,12 @@ def predict(
     ),
     current_user: User = Depends(require_roles("consumer", "analyst", "ml_engineer", "admin")),
 ):
-    prediction, model = create_prediction(db, payload, current_user)
+    prediction, model = create_prediction(
+        db,
+        payload,
+        current_user,
+        trace_id=request.headers.get("X-Trace-Id", "n/a"),
+    )
     return PredictionResponse(
         prediction_id=prediction.id,
         asset_code=prediction.asset_code,

@@ -193,3 +193,68 @@ variable "postgresql_public_access_enabled" {
   type    = bool
   default = true
 }
+
+variable "enable_eventhub_streaming" {
+  type    = bool
+  default = false
+}
+
+variable "eventhub_namespace_name" {
+  type    = string
+  default = null
+}
+
+variable "eventhub_namespace_sku" {
+  type    = string
+  default = "Standard"
+}
+
+variable "eventhub_namespace_capacity" {
+  type    = number
+  default = 1
+}
+
+variable "eventhub_name" {
+  type    = string
+  default = null
+}
+
+variable "eventhub_partition_count" {
+  type    = number
+  default = 2
+}
+
+variable "eventhub_message_retention_days" {
+  type    = number
+  default = 1
+}
+
+variable "eventhub_consumer_group" {
+  type    = string
+  default = "energypredict-consumer"
+}
+
+variable "stream_ingestion_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "prediction_loop_interval_seconds" {
+  type    = number
+  default = 10
+}
+
+variable "llm_provider" {
+  type    = string
+  default = "none"
+}
+
+variable "llm_model" {
+  type    = string
+  default = ""
+}
+
+variable "llm_endpoint" {
+  type    = string
+  default = ""
+}

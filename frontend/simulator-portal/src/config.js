@@ -5,6 +5,7 @@ const stored = localStorage.getItem("energypredict.apiBaseUrl");
 export const appConfig = {
   apiBaseUrl: stored || defaults.API_BASE_URL || "http://localhost:8000/api/v1",
   environment: defaults.APP_ENV || "local",
+  livePollIntervalSeconds: Number(defaults.LIVE_POLL_INTERVAL_SECONDS || 5),
 };
 
 export function setApiBaseUrl(url) {

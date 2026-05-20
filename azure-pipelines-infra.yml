@@ -120,6 +120,51 @@ stages:
                   grep -Eq '^[[:space:]]*resource_group_name[[:space:]]*=' "${output_file}" || { echo "Missing resource_group_name in ${output_file}"; return 1; }
                 }
 
+                validate_streaming_contract() {
+                  local tfvars_file="$1"
+                  local env_label="$2"
+                  local required="$3"
+                  local local_warnings=0
+
+                  if [ ! -f "${tfvars_file}" ]; then
+                    if [ "${required}" = "1" ]; then
+                      echo "Missing ${tfvars_file}; cannot validate streaming contract for ${env_label}."
+                      return 1
+                    fi
+                    return 0
+                  fi
+
+                  if grep -Eq '^[[:space:]]*enable_eventhub_streaming[[:space:]]*=[[:space:]]*true[[:space:]]*$' "${tfvars_file}"; then
+                    grep -Eq '^[[:space:]]*eventhub_namespace_name[[:space:]]*=[[:space:]]*".+"' "${tfvars_file}" || {
+                      echo "Missing eventhub_namespace_name in ${tfvars_file} while enable_eventhub_streaming=true"
+                      return 1
+                    }
+                    grep -Eq '^[[:space:]]*eventhub_name[[:space:]]*=[[:space:]]*".+"' "${tfvars_file}" || {
+                      echo "Missing eventhub_name in ${tfvars_file} while enable_eventhub_streaming=true"
+                      return 1
+                    }
+                  fi
+
+                  if grep -Eq '^[[:space:]]*stream_ingestion_enabled[[:space:]]*=[[:space:]]*true[[:space:]]*$' "${tfvars_file}" && \
+                     ! grep -Eq '^[[:space:]]*enable_eventhub_streaming[[:space:]]*=[[:space:]]*true[[:space:]]*$' "${tfvars_file}"; then
+                    echo "Precheck warning (${env_label}): stream_ingestion_enabled=true but enable_eventhub_streaming is not true."
+                    local_warnings=$((local_warnings + 1))
+                  fi
+
+                  if grep -Eq '^[[:space:]]*llm_provider[[:space:]]*=[[:space:]]*"(azure_openai|openai|openai-compatible|groq)"' "${tfvars_file}"; then
+                    grep -Eq '^[[:space:]]*llm_model[[:space:]]*=[[:space:]]*".+"' "${tfvars_file}" || {
+                      echo "Missing llm_model in ${tfvars_file} while llm_provider requires it"
+                      return 1
+                    }
+                    grep -Eq '^[[:space:]]*llm_endpoint[[:space:]]*=[[:space:]]*".+"' "${tfvars_file}" || {
+                      echo "Missing llm_endpoint in ${tfvars_file} while llm_provider requires it"
+                      return 1
+                    }
+                  fi
+
+                  WARNINGS=$((WARNINGS + local_warnings))
+                }
+
                 DEV_TFVARS="infra/terraform/envs/dev/terraform.tfvars"
                 PROD_TFVARS="infra/terraform/envs/prod/terraform.tfvars"
 
@@ -131,6 +176,8 @@ stages:
 
                 check_tfvars "TFVARS_DEV" "${TFVARS_DEV_B64:-}" "${DEV_TFVARS}" "${DEV_REQUIRED}"
                 check_tfvars "TFVARS_PROD" "${TFVARS_PROD_B64:-}" "${PROD_TFVARS}" "${PROD_REQUIRED}"
+                validate_streaming_contract "${DEV_TFVARS}" "dev" "${DEV_REQUIRED}"
+                validate_streaming_contract "${PROD_TFVARS}" "prod" "${PROD_REQUIRED}"
 
                 # Check current SP role assignments to reduce apply surprises.
                 SUBSCRIPTION_ID="$(az account show --query id -o tsv)"

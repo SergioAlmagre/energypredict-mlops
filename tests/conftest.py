@@ -69,3 +69,9 @@ def consumer_headers(client):
 def ml_engineer_headers(client):
     token = _token_for(client, "ml_engineer@example.com", "ml_engineer")
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def admin_headers(client):
+    token = _token_for(client, "admin@example.com", "admin")
+    return {"Authorization": f"Bearer {token}"}

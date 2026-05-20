@@ -2564,7 +2564,7 @@
       "model_id": "791b27d3-bd45-4dd1-98f6-dce822262665",
       "name": "asset_failure_classifier",
       "version": "2026.05.19.100042",
-      "stage": "production",
+      "stage": "archived",
       "algorithm": "RandomForestClassifier",
       "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.19.100042.pkl",
       "metrics": {
@@ -2575,9 +2575,585 @@
       },
       "created_at": "2026-05-19T10:00:42.923000+00:00",
       "promoted_at": "2026-05-19T10:00:42.952431+00:00"
+    },
+    {
+      "model_id": "561deb78-0032-4a68-9f2d-f21d2c282b0c",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152909",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152909.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:09.584949+00:00",
+      "promoted_at": "2026-05-20T15:29:09.605645+00:00"
+    },
+    {
+      "model_id": "cbe4622a-764f-4cf7-b4c0-19a90f93dbbf",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152909",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152909.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:09.846648+00:00",
+      "promoted_at": "2026-05-20T15:29:09.846648+00:00"
+    },
+    {
+      "model_id": "316c7fbf-41d2-4884-84df-92c02a5678c1",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152910",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152910.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:10.891744+00:00",
+      "promoted_at": "2026-05-20T15:29:10.891744+00:00"
+    },
+    {
+      "model_id": "20b8ffc6-6032-4cc0-9672-b0727cbece02",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152910",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152910.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:11.230342+00:00",
+      "promoted_at": "2026-05-20T15:29:11.254346+00:00"
+    },
+    {
+      "model_id": "c4bd575e-0653-41cb-a862-42ec2e506f3c",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152911",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152911.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:11.533035+00:00",
+      "promoted_at": "2026-05-20T15:29:11.557085+00:00"
+    },
+    {
+      "model_id": "a27d3a82-fb90-4cc7-892e-fe3f0819581e",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152911",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152911.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:11.961170+00:00",
+      "promoted_at": "2026-05-20T15:29:11.986012+00:00"
+    },
+    {
+      "model_id": "b0b78b23-9118-4dfa-92b7-8b9f6477ddad",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152940",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152940.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:41.189250+00:00",
+      "promoted_at": "2026-05-20T15:29:41.211565+00:00"
+    },
+    {
+      "model_id": "9390ce06-3f10-48d3-ab63-0c045cf91860",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152941",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152941.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:41.441197+00:00",
+      "promoted_at": "2026-05-20T15:29:41.441197+00:00"
+    },
+    {
+      "model_id": "8d70a91e-8e76-4c6b-827f-45f0d5f44098",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152942",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152942.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:42.467793+00:00",
+      "promoted_at": "2026-05-20T15:29:42.467793+00:00"
+    },
+    {
+      "model_id": "e007ca80-258b-4643-943d-57ceb177b401",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152942",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152942.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:42.769862+00:00",
+      "promoted_at": "2026-05-20T15:29:42.793291+00:00"
+    },
+    {
+      "model_id": "e3dbbf9f-6c0d-48c5-a823-10e0b7d33ca4",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152942",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152942.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:43.096992+00:00",
+      "promoted_at": "2026-05-20T15:29:43.122070+00:00"
+    },
+    {
+      "model_id": "a473acc9-2db1-453d-9b53-ee5194b8c3ec",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.152943",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.152943.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:29:43.545793+00:00",
+      "promoted_at": "2026-05-20T15:29:43.574392+00:00"
+    },
+    {
+      "model_id": "af67e3fa-c1b0-42a3-93e6-577011bdf504",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155146",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155146.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:46.870924+00:00",
+      "promoted_at": "2026-05-20T15:51:46.907057+00:00"
+    },
+    {
+      "model_id": "9f198a13-0941-4a16-b5be-8d1612dc3c5e",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155146",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155146.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:47.251068+00:00",
+      "promoted_at": "2026-05-20T15:51:47.251068+00:00"
+    },
+    {
+      "model_id": "447c4319-d721-4d4a-a726-120a0cc68b04",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155148",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155148.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:48.604197+00:00",
+      "promoted_at": "2026-05-20T15:51:48.604197+00:00"
+    },
+    {
+      "model_id": "a94dd5ff-82f9-49ce-9fb4-cad5ded1f487",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155148",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155148.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:49.036696+00:00",
+      "promoted_at": "2026-05-20T15:51:49.076503+00:00"
+    },
+    {
+      "model_id": "481205d9-94f0-4aa6-80c7-6573139c3dad",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155149",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155149.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:49.511518+00:00",
+      "promoted_at": "2026-05-20T15:51:49.553195+00:00"
+    },
+    {
+      "model_id": "a9418971-d2cc-4ca2-a878-c38f9c06397c",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.155149",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.155149.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T15:51:50.123473+00:00",
+      "promoted_at": "2026-05-20T15:51:50.157848+00:00"
+    },
+    {
+      "model_id": "a57a3c1d-7e7b-4f3c-9fd5-f57dd6781a0d",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160822",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160822.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:22.905745+00:00",
+      "promoted_at": "2026-05-20T16:08:22.934025+00:00"
+    },
+    {
+      "model_id": "b9c559ce-c090-4fc3-9400-67d36f8eaabf",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160822",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160822.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:23.253031+00:00",
+      "promoted_at": "2026-05-20T16:08:23.253031+00:00"
+    },
+    {
+      "model_id": "99fb3b24-8750-4972-8a29-11a316a68b75",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160824",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160824.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:24.720266+00:00",
+      "promoted_at": "2026-05-20T16:08:24.720266+00:00"
+    },
+    {
+      "model_id": "415654ff-fa15-4c9e-a3f9-df32bf82546e",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160824",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160824.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:25.139421+00:00",
+      "promoted_at": "2026-05-20T16:08:25.175105+00:00"
+    },
+    {
+      "model_id": "c9d77bed-0679-4646-824f-3647d5146689",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160825",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160825.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:25.563249+00:00",
+      "promoted_at": "2026-05-20T16:08:25.598514+00:00"
+    },
+    {
+      "model_id": "1eefc2c9-ec41-493a-ba4f-bdb9d50652d8",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.160825",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.160825.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:08:26.113609+00:00",
+      "promoted_at": "2026-05-20T16:08:26.148790+00:00"
+    },
+    {
+      "model_id": "100025f1-0047-4a55-880c-f84b3cf72d40",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161018",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161018.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:18.511618+00:00",
+      "promoted_at": "2026-05-20T16:10:18.535636+00:00"
+    },
+    {
+      "model_id": "3e40f9fa-bcc3-43cc-8463-027df2af882d",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161018",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161018.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:18.840726+00:00",
+      "promoted_at": "2026-05-20T16:10:18.840726+00:00"
+    },
+    {
+      "model_id": "66a5951e-84b3-448d-ad9b-efab16a29d4c",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161019",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161019.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:20.001758+00:00",
+      "promoted_at": "2026-05-20T16:10:20.001758+00:00"
+    },
+    {
+      "model_id": "a0aa023b-325d-464c-b922-394675c202bd",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161020",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161020.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:20.321242+00:00",
+      "promoted_at": "2026-05-20T16:10:20.364122+00:00"
+    },
+    {
+      "model_id": "3ea20097-8fdc-40ae-8c76-bbf7e6bf8900",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161020",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161020.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:20.684429+00:00",
+      "promoted_at": "2026-05-20T16:10:20.707899+00:00"
+    },
+    {
+      "model_id": "80215b4c-e594-43dc-9c27-ba9a8666ccac",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161020",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161020.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:10:21.131677+00:00",
+      "promoted_at": "2026-05-20T16:10:21.166017+00:00"
+    },
+    {
+      "model_id": "1c2dfab8-c150-4905-9adb-a7352fa346f8",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161426",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161426.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:27.203963+00:00",
+      "promoted_at": "2026-05-20T16:14:27.229983+00:00"
+    },
+    {
+      "model_id": "0d33806e-c641-4f40-b08f-da3cecf4a065",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161427",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161427.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:27.541159+00:00",
+      "promoted_at": "2026-05-20T16:14:27.541159+00:00"
+    },
+    {
+      "model_id": "671ded5a-c4f2-4d88-95a0-920b3146d81b",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161428",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161428.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:28.689544+00:00",
+      "promoted_at": "2026-05-20T16:14:28.689544+00:00"
+    },
+    {
+      "model_id": "e2aec399-e31b-4505-9ae4-982008de41a2",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161428",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161428.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:29.031657+00:00",
+      "promoted_at": "2026-05-20T16:14:29.059808+00:00"
+    },
+    {
+      "model_id": "c31721da-eb4c-42f3-9a14-c4263db5968a",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161429",
+      "stage": "archived",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161429.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:29.377338+00:00",
+      "promoted_at": "2026-05-20T16:14:29.401011+00:00"
+    },
+    {
+      "model_id": "835d9e1b-a522-43c4-a063-c85b95207be2",
+      "name": "asset_failure_classifier",
+      "version": "2026.05.20.161429",
+      "stage": "production",
+      "algorithm": "RandomForestClassifier",
+      "artifact_uri": "artifacts\\asset_failure_classifier_2026.05.20.161429.pkl",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "created_at": "2026-05-20T16:14:29.815428+00:00",
+      "promoted_at": "2026-05-20T16:14:29.839659+00:00"
     }
   ],
-  "production_model_id": "791b27d3-bd45-4dd1-98f6-dce822262665",
+  "production_model_id": "835d9e1b-a522-43c4-a063-c85b95207be2",
   "training_runs": [
     {
       "run_id": "654e0415-cfd2-4b6d-9ad9-87f1eeca962a",
@@ -5958,6 +6534,762 @@
       },
       "model_id": "791b27d3-bd45-4dd1-98f6-dce822262665",
       "mlflow_run_id": "25b7042c-c57c-4447-aac6-41a89330dc7b",
+      "error_message": null
+    },
+    {
+      "run_id": "315a52e1-1ee8-4900-99c2-81d85f0af48d",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:09.335110+00:00",
+      "finished_at": "2026-05-20T15:29:09.593987+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "561deb78-0032-4a68-9f2d-f21d2c282b0c",
+      "mlflow_run_id": "ed79ada1-6908-4367-a110-2374565e5b62",
+      "error_message": null
+    },
+    {
+      "run_id": "a00e6807-3cfe-460d-9793-8fad234959d7",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:09.621219+00:00",
+      "finished_at": "2026-05-20T15:29:09.859114+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "cbe4622a-764f-4cf7-b4c0-19a90f93dbbf",
+      "mlflow_run_id": "3ed9b7f0-daed-4191-a013-e59334a658ce",
+      "error_message": null
+    },
+    {
+      "run_id": "4c99e1fa-23f6-4269-9c1d-d40c6663907e",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:10.702382+00:00",
+      "finished_at": "2026-05-20T15:29:10.904836+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "316c7fbf-41d2-4884-84df-92c02a5678c1",
+      "mlflow_run_id": "d15f5f98-7a71-42e6-829a-67d38e913742",
+      "error_message": null
+    },
+    {
+      "run_id": "79cb7f95-3652-4dab-9762-1af2d4a1e12d",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:10.988112+00:00",
+      "finished_at": "2026-05-20T15:29:11.242303+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "20b8ffc6-6032-4cc0-9672-b0727cbece02",
+      "mlflow_run_id": "de0bd20f-6bff-4ea9-b154-30af60630def",
+      "error_message": null
+    },
+    {
+      "run_id": "d061e611-2e31-4d0e-b116-624b86984976",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:11.322372+00:00",
+      "finished_at": "2026-05-20T15:29:11.544053+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "c4bd575e-0653-41cb-a862-42ec2e506f3c",
+      "mlflow_run_id": "f4894cbc-d1f2-469b-a4ef-d4e770651bf5",
+      "error_message": null
+    },
+    {
+      "run_id": "a9c1b345-f057-4a67-aa91-1cf4a91d50cc",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:11.752282+00:00",
+      "finished_at": "2026-05-20T15:29:11.972554+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a27d3a82-fb90-4cc7-892e-fe3f0819581e",
+      "mlflow_run_id": "d8962e89-3001-4ada-a966-a5bde37b1aea",
+      "error_message": null
+    },
+    {
+      "run_id": "848da6e2-edac-40b9-9767-9da1ae467683",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:40.974137+00:00",
+      "finished_at": "2026-05-20T15:29:41.199444+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "b0b78b23-9118-4dfa-92b7-8b9f6477ddad",
+      "mlflow_run_id": "c6c3621f-2260-4d12-84ae-ba167b6a2c35",
+      "error_message": null
+    },
+    {
+      "run_id": "1ded2100-a5dd-47b3-90a5-3400ea6205a7",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:41.224015+00:00",
+      "finished_at": "2026-05-20T15:29:41.450673+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "9390ce06-3f10-48d3-ab63-0c045cf91860",
+      "mlflow_run_id": "96839f21-9ffd-4c23-a7fa-01fcf988c1fc",
+      "error_message": null
+    },
+    {
+      "run_id": "27730165-5e0e-47b6-8b01-44b2ebf6810b",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:42.242788+00:00",
+      "finished_at": "2026-05-20T15:29:42.477510+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "8d70a91e-8e76-4c6b-827f-45f0d5f44098",
+      "mlflow_run_id": "15a8740e-3bb3-45d1-b4c6-1be88c388ed0",
+      "error_message": null
+    },
+    {
+      "run_id": "2afca457-89df-4d13-ba6a-3d0020d89e7a",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:42.554514+00:00",
+      "finished_at": "2026-05-20T15:29:42.780172+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "e007ca80-258b-4643-943d-57ceb177b401",
+      "mlflow_run_id": "ee6fca32-f75e-4f24-a5b5-3fcf5b2a81a1",
+      "error_message": null
+    },
+    {
+      "run_id": "674fae86-3ccc-49dd-b042-9ce70e7e562e",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:42.869285+00:00",
+      "finished_at": "2026-05-20T15:29:43.107524+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "e3dbbf9f-6c0d-48c5-a823-10e0b7d33ca4",
+      "mlflow_run_id": "c25f54ee-ede1-488c-8d21-a81e803847ad",
+      "error_message": null
+    },
+    {
+      "run_id": "fa5e663a-dd62-4fec-80c8-c8f818088177",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:29:43.300282+00:00",
+      "finished_at": "2026-05-20T15:29:43.557947+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a473acc9-2db1-453d-9b53-ee5194b8c3ec",
+      "mlflow_run_id": "8fc14e09-df3d-4ed5-991e-2cf0898d5dbf",
+      "error_message": null
+    },
+    {
+      "run_id": "7653a921-5436-4251-8db1-5283f569a0f3",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:46.549666+00:00",
+      "finished_at": "2026-05-20T15:51:46.887089+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "af67e3fa-c1b0-42a3-93e6-577011bdf504",
+      "mlflow_run_id": "318acc38-d414-4e57-90f4-2162c79cee1a",
+      "error_message": null
+    },
+    {
+      "run_id": "b73ee5d1-f668-48bf-ab26-aa74b46fa0f4",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:46.927236+00:00",
+      "finished_at": "2026-05-20T15:51:47.266151+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "9f198a13-0941-4a16-b5be-8d1612dc3c5e",
+      "mlflow_run_id": "9015df34-0761-4a26-b387-864635095251",
+      "error_message": null
+    },
+    {
+      "run_id": "0f8274f7-37e6-407a-a890-0a5173576be6",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:48.313664+00:00",
+      "finished_at": "2026-05-20T15:51:48.619143+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "447c4319-d721-4d4a-a726-120a0cc68b04",
+      "mlflow_run_id": "b5f9e305-9ef7-44bb-9993-2f83c87892bb",
+      "error_message": null
+    },
+    {
+      "run_id": "17e722da-1406-4f66-9711-abd367066a7a",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:48.709081+00:00",
+      "finished_at": "2026-05-20T15:51:49.055718+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a94dd5ff-82f9-49ce-9fb4-cad5ded1f487",
+      "mlflow_run_id": "3fcb8cad-f10b-43f7-895e-4a7178e809e0",
+      "error_message": null
+    },
+    {
+      "run_id": "53d752f1-b681-4048-b6c4-c484a5769d10",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:49.176727+00:00",
+      "finished_at": "2026-05-20T15:51:49.530408+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "481205d9-94f0-4aa6-80c7-6573139c3dad",
+      "mlflow_run_id": "e2859fb4-9769-481c-8c4c-f349a39eb9fa",
+      "error_message": null
+    },
+    {
+      "run_id": "54ad4799-2b07-458a-8d43-0b74af82a55f",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T15:51:49.794176+00:00",
+      "finished_at": "2026-05-20T15:51:50.138042+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a9418971-d2cc-4ca2-a878-c38f9c06397c",
+      "mlflow_run_id": "3547fb66-4390-4c5e-b15a-b1d7e26978e6",
+      "error_message": null
+    },
+    {
+      "run_id": "96042f9e-9357-4fbd-9bd3-4c16ad26caa5",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:22.616994+00:00",
+      "finished_at": "2026-05-20T16:08:22.918100+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a57a3c1d-7e7b-4f3c-9fd5-f57dd6781a0d",
+      "mlflow_run_id": "bae6ff79-701f-43cb-b7e1-93498b938b5a",
+      "error_message": null
+    },
+    {
+      "run_id": "6f4d0012-b38f-4b7c-935a-e8d6546a0a3b",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:22.953118+00:00",
+      "finished_at": "2026-05-20T16:08:23.268551+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "b9c559ce-c090-4fc3-9400-67d36f8eaabf",
+      "mlflow_run_id": "170095a2-bb12-450c-bb9e-4d015d270a62",
+      "error_message": null
+    },
+    {
+      "run_id": "8edb4744-6cc5-43f0-9b3c-1fbf3a4c0549",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:24.373411+00:00",
+      "finished_at": "2026-05-20T16:08:24.735802+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "99fb3b24-8750-4972-8a29-11a316a68b75",
+      "mlflow_run_id": "d9ddaf70-ae12-43a0-bbf0-47820aca9260",
+      "error_message": null
+    },
+    {
+      "run_id": "3f1ade48-bbd6-439e-8853-803c13091a17",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:24.840259+00:00",
+      "finished_at": "2026-05-20T16:08:25.156754+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "415654ff-fa15-4c9e-a3f9-df32bf82546e",
+      "mlflow_run_id": "9d4ced83-7da0-43bc-b747-20bb9b6d9ed7",
+      "error_message": null
+    },
+    {
+      "run_id": "9679174a-0175-429d-9b1d-068a5ffff378",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:25.268841+00:00",
+      "finished_at": "2026-05-20T16:08:25.576037+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "c9d77bed-0679-4646-824f-3647d5146689",
+      "mlflow_run_id": "002347ff-78f4-4e63-a86f-292939976f3d",
+      "error_message": null
+    },
+    {
+      "run_id": "3949ae3d-e610-4dd9-8110-0b8e599cd695",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:08:25.807638+00:00",
+      "finished_at": "2026-05-20T16:08:26.129856+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "1eefc2c9-ec41-493a-ba4f-bdb9d50652d8",
+      "mlflow_run_id": "afd83148-9284-4a71-a3d0-8c3606b86c7b",
+      "error_message": null
+    },
+    {
+      "run_id": "5b7340b5-d278-4716-8f7f-c1c3e9e35030",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:18.276230+00:00",
+      "finished_at": "2026-05-20T16:10:18.523277+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "100025f1-0047-4a55-880c-f84b3cf72d40",
+      "mlflow_run_id": "afbf87cb-787d-4f8d-b8a2-6244d2615979",
+      "error_message": null
+    },
+    {
+      "run_id": "5399867a-7d46-45e1-b14b-9c29b0f2111c",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:18.551223+00:00",
+      "finished_at": "2026-05-20T16:10:18.853218+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "3e40f9fa-bcc3-43cc-8463-027df2af882d",
+      "mlflow_run_id": "41b3731a-27da-43a0-b6c8-ced30489e6fc",
+      "error_message": null
+    },
+    {
+      "run_id": "4e8d6ac2-79d7-4fd6-bb68-317b1a9f8a42",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:19.788999+00:00",
+      "finished_at": "2026-05-20T16:10:20.014284+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "66a5951e-84b3-448d-ad9b-efab16a29d4c",
+      "mlflow_run_id": "d23d0623-ffca-412a-b0a3-3f036ab3907f",
+      "error_message": null
+    },
+    {
+      "run_id": "2992d186-a5cc-4551-9459-11692322eddb",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:20.102702+00:00",
+      "finished_at": "2026-05-20T16:10:20.334491+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "a0aa023b-325d-464c-b922-394675c202bd",
+      "mlflow_run_id": "70814faf-8c04-47cc-8294-41d0d82a1230",
+      "error_message": null
+    },
+    {
+      "run_id": "b2af907c-4c13-402e-a78d-b745f35dacf8",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:20.462605+00:00",
+      "finished_at": "2026-05-20T16:10:20.694461+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "3ea20097-8fdc-40ae-8c76-bbf7e6bf8900",
+      "mlflow_run_id": "d5b32848-5c0c-4787-b1be-2511903d93ce",
+      "error_message": null
+    },
+    {
+      "run_id": "063ef00c-f2f3-48eb-8cd5-240cc2039b10",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:10:20.904067+00:00",
+      "finished_at": "2026-05-20T16:10:21.147951+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "80215b4c-e594-43dc-9c27-ba9a8666ccac",
+      "mlflow_run_id": "f64e3bf6-efa9-4566-92d0-0296380dbafd",
+      "error_message": null
+    },
+    {
+      "run_id": "56c41734-3bf6-4230-bbda-6c4bab3b587c",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:26.933240+00:00",
+      "finished_at": "2026-05-20T16:14:27.216125+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "1c2dfab8-c150-4905-9adb-a7352fa346f8",
+      "mlflow_run_id": "618c1f58-407c-4a31-a126-f3ba3f382ea8",
+      "error_message": null
+    },
+    {
+      "run_id": "a5f2a116-5a84-4f20-8856-704a8468338b",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:27.247459+00:00",
+      "finished_at": "2026-05-20T16:14:27.552462+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "0d33806e-c641-4f40-b08f-da3cecf4a065",
+      "mlflow_run_id": "d3c57779-f5ba-4d37-a501-65dd70830f85",
+      "error_message": null
+    },
+    {
+      "run_id": "6594b8be-e1f9-45d6-a7f0-1c6eefdb18d1",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:28.466877+00:00",
+      "finished_at": "2026-05-20T16:14:28.701072+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "671ded5a-c4f2-4d88-95a0-920b3146d81b",
+      "mlflow_run_id": "db3c495f-95df-4107-8b84-5367571417f4",
+      "error_message": null
+    },
+    {
+      "run_id": "fc9ab041-dfaa-468d-887a-f8d217ff4b16",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:28.778102+00:00",
+      "finished_at": "2026-05-20T16:14:29.042714+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "e2aec399-e31b-4505-9ae4-982008de41a2",
+      "mlflow_run_id": "10a16dde-bf6b-4f06-9594-82557bf0c69a",
+      "error_message": null
+    },
+    {
+      "run_id": "f464cd7f-e886-4f2e-afb6-4785d433ef7a",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:29.142358+00:00",
+      "finished_at": "2026-05-20T16:14:29.388406+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "c31721da-eb4c-42f3-9a14-c4263db5968a",
+      "mlflow_run_id": "940db9c2-0f94-405e-a69f-73cff422a2aa",
+      "error_message": null
+    },
+    {
+      "run_id": "42dd2db2-9a37-4dd1-91b2-9068e6202022",
+      "status": "completed",
+      "dataset_uri": "data/synthetic_sensor_data.csv",
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 8,
+        "random_state": 42
+      },
+      "started_at": "2026-05-20T16:14:29.581100+00:00",
+      "finished_at": "2026-05-20T16:14:29.826624+00:00",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "model_id": "835d9e1b-a522-43c4-a063-c85b95207be2",
+      "mlflow_run_id": "11e7bef4-214a-43d5-af85-aa5525c49911",
       "error_message": null
     }
   ]

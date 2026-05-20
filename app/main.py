@@ -10,14 +10,27 @@ from fastapi.responses import Response
 from jose import JWTError, jwt
 
 from app.api.routes_auth import router as auth_router
+from app.api.routes_admin import router as admin_router
+from app.api.routes_alerts import router as alerts_router
 from app.api.routes_health import router as health_router
 from app.api.routes_models import router as models_router
 from app.api.routes_predictions import router as predictions_router
+from app.api.routes_stream import router as stream_router
 from app.core.config import get_settings
-from app.db.session import Base, engine
+from app.db.session import Base, SessionLocal, engine
+from app.services.risk_policy_service import get_or_create_active_policy
+from app.services.streaming_service import get_or_create_simulation_state
+from app.workers.simulation_worker import simulation_worker
 
 settings = get_settings()
 Base.metadata.create_all(bind=engine)
+try:
+    with SessionLocal() as bootstrap_db:
+        get_or_create_active_policy(bootstrap_db)
+        get_or_create_simulation_state(bootstrap_db)
+except Exception:
+    # Runtime policies are lazily created during API calls if bootstrap fails.
+    pass
 logger = logging.getLogger("energypredict.request")
 
 app = FastAPI(title=settings.app_name)
@@ -32,6 +45,20 @@ app.include_router(health_router, prefix=settings.api_v1_prefix)
 app.include_router(auth_router, prefix=settings.api_v1_prefix)
 app.include_router(predictions_router, prefix=settings.api_v1_prefix)
 app.include_router(models_router, prefix=settings.api_v1_prefix)
+app.include_router(admin_router, prefix=settings.api_v1_prefix)
+app.include_router(stream_router, prefix=settings.api_v1_prefix)
+app.include_router(alerts_router, prefix=settings.api_v1_prefix)
+
+
+@app.on_event("startup")
+def startup_background_workers():
+    if settings.stream_ingestion_enabled:
+        simulation_worker.start()
+
+
+@app.on_event("shutdown")
+def shutdown_background_workers():
+    simulation_worker.stop()
 
 
 @app.middleware("http")
