@@ -8,11 +8,14 @@ module "platform" {
   acr_name                               = var.acr_name
   aks_name                               = var.aks_name
   key_vault_name                         = var.key_vault_name
+  key_vault_purge_protection_enabled     = var.key_vault_purge_protection_enabled
+  key_vault_soft_delete_retention_days   = var.key_vault_soft_delete_retention_days
   log_analytics_name                     = var.log_analytics_name
   create_dns_zone                        = var.create_dns_zone
   dns_zone_name                          = var.dns_zone_name
   dns_resource_group_name                = var.dns_resource_group_name
   kubernetes_version                     = var.kubernetes_version
+  aks_location                           = var.aks_location
   node_count                             = var.node_count
   node_vm_size                           = var.node_vm_size
   enable_databricks                      = var.enable_databricks
@@ -29,6 +32,7 @@ module "platform" {
   key_vault_app_secrets                  = var.key_vault_app_secrets
   enable_postgresql                      = var.enable_postgresql
   postgresql_server_name                 = var.postgresql_server_name
+  postgresql_location                    = var.postgresql_location
   postgresql_database_name               = var.postgresql_database_name
   postgresql_admin_username              = var.postgresql_admin_username
   postgresql_admin_password              = var.postgresql_admin_password
@@ -36,5 +40,18 @@ module "platform" {
   postgresql_storage_mb                  = var.postgresql_storage_mb
   postgresql_version                     = var.postgresql_version
   postgresql_public_access_enabled       = var.postgresql_public_access_enabled
+  enable_eventhub_streaming              = var.enable_eventhub_streaming
+  eventhub_namespace_name                = var.eventhub_namespace_name
+  eventhub_namespace_sku                 = var.eventhub_namespace_sku
+  eventhub_namespace_capacity            = var.eventhub_namespace_capacity
+  eventhub_name                          = var.eventhub_name
+  eventhub_partition_count               = var.eventhub_partition_count
+  eventhub_message_retention_days        = var.eventhub_message_retention_days
+  eventhub_consumer_group                = var.eventhub_consumer_group
+  stream_ingestion_enabled               = var.stream_ingestion_enabled
+  prediction_loop_interval_seconds       = var.prediction_loop_interval_seconds
+  llm_provider                           = var.llm_provider
+  llm_model                              = var.llm_model
+  llm_endpoint                           = var.llm_endpoint
   tags                                   = var.tags
 }

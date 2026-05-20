@@ -57,3 +57,39 @@ output "postgresql_server_fqdn" {
 output "postgresql_database_name" {
   value = module.platform.postgresql_database_name
 }
+
+output "eventhub_namespace_name" {
+  value = module.platform.eventhub_namespace_name
+}
+
+output "eventhub_namespace_id" {
+  value = module.platform.eventhub_namespace_id
+}
+
+output "eventhub_name" {
+  value = module.platform.eventhub_name
+}
+
+output "eventhub_consumer_group" {
+  value = module.platform.eventhub_consumer_group
+}
+
+output "stream_ingestion_enabled" {
+  value = module.platform.stream_ingestion_enabled
+}
+
+output "prediction_loop_interval_seconds" {
+  value = module.platform.prediction_loop_interval_seconds
+}
+
+output "llm_provider" {
+  value = module.platform.llm_provider
+}
+
+output "llm_model" {
+  value = module.platform.llm_model
+}
+
+output "llm_endpoint" {
+  value = module.platform.llm_endpoint
+}

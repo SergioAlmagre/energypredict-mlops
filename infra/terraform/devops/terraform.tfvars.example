@@ -1,0 +1,83 @@
+# ===== Required: Azure DevOps access =====
+azuredevops_org_service_url = "https://dev.azure.com/<org>"
+azuredevops_pat             = "<azure-devops-pat>"
+azuredevops_project_name    = "<azure-devops-project>"
+
+# ===== Variable group =====
+variable_group_name = "energypredict-shared"
+description         = "EnergyPredict shared variables (managed by Terraform)"
+allow_access        = true
+
+# ===== Service Connection mode =====
+create_azure_service_connection      = true
+azure_service_connection_name        = "energypredict-azure-rm"
+azure_service_connection_description = "EnergyPredict AzureRM connection (managed by Terraform)"
+
+# Required when create_azure_service_connection = true
+azurerm_subscription_id   = "<subscription-id>"
+azurerm_subscription_name = "<subscription-name>"
+azurerm_spn_tenantid      = "<tenant-id>"
+azurerm_spn_clientid      = "<service-principal-client-id>"
+azurerm_spn_clientsecret  = "<service-principal-client-secret>"
+
+# ===== Non-secret pipeline variables =====
+variables = {
+  AZURE_SERVICE_CONNECTION = "energypredict-azure-rm"
+  AZURE_TENANT_ID          = "<tenant-id>"
+
+  ACR_NAME               = "<acr-name-dev>"
+  AKS_DEV_RESOURCE_GROUP = "<rg-dev>"
+  AKS_DEV_CLUSTER_NAME   = "<aks-dev>"
+  KEY_VAULT_NAME_DEV     = "<kv-dev>"
+
+  AKS_PROD_RESOURCE_GROUP = "<rg-prod>"
+  AKS_PROD_CLUSTER_NAME   = "<aks-prod>"
+  KEY_VAULT_NAME_PROD     = "<kv-prod>"
+
+  AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV  = "<uami-client-id-dev>"
+  AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD = "<uami-client-id-prod>"
+
+  CORS_ALLOWED_ORIGINS_DEV  = "https://<frontend-dev-host>"
+  CORS_ALLOWED_ORIGINS_PROD = "https://<frontend-prod-host>"
+
+  STATIC_WEB_APP_DEV_NAME            = "<swa-dev-name>"
+  STATIC_WEB_APP_DEV_RESOURCE_GROUP  = "<swa-dev-rg>"
+  STATIC_WEB_APP_PROD_NAME           = "<swa-prod-name>"
+  STATIC_WEB_APP_PROD_RESOURCE_GROUP = "<swa-prod-rg>"
+
+  FRONTEND_DEV_API_BASE_URL  = "https://<api-dev-host>/api/v1"
+  FRONTEND_PROD_API_BASE_URL = "https://<api-prod-host>/api/v1"
+  FRONTEND_API_SCHEME_DEV    = "http"
+  FRONTEND_API_SCHEME_PROD   = "https"
+  LETSENCRYPT_EMAIL          = "<you@example.com>"
+
+  ENABLE_EVENTHUB_STREAMING_DEV  = "true"
+  ENABLE_EVENTHUB_STREAMING_PROD = "true"
+  EVENTHUB_NAMESPACE_NAME_DEV    = "evhns-<project>-dev"
+  EVENTHUB_NAMESPACE_NAME_PROD   = "evhns-<project>-prod"
+  EVENTHUB_NAME_DEV              = "evh-<project>-telemetry-dev"
+  EVENTHUB_NAME_PROD             = "evh-<project>-telemetry-prod"
+  EVENTHUB_CONSUMER_GROUP        = "energypredict-consumer"
+  STREAM_INGESTION_ENABLED_DEV   = "true"
+  STREAM_INGESTION_ENABLED_PROD  = "true"
+  PREDICTION_LOOP_INTERVAL_SECONDS = "10"
+  LLM_PROVIDER                   = "groq"
+  LLM_MODEL                      = "llama-3.1-70b-versatile"
+  LLM_ENDPOINT                   = "https://api.groq.com/openai/v1/chat/completions"
+
+  TF_STATE_RESOURCE_GROUP = "rg-<project>-tfstate"
+  TF_STATE_LOCATION       = "<azure-region>"
+  TF_STATE_STORAGE_ACCOUNT = "<project>tfstate01"
+  TF_STATE_CONTAINER      = "tfstate"
+  TF_STATE_KEY_DEV        = "envs/dev/terraform.tfstate"
+  TF_STATE_KEY_PROD       = "envs/prod/terraform.tfstate"
+}
+
+# Optional: secrets used only in CI/CD context
+secret_variables = {
+  # Optional: base64 content of infra/terraform/envs/dev/terraform.tfvars
+  TFVARS_DEV_B64 = "<base64-dev-terraform-tfvars>"
+  # Optional: base64 content of infra/terraform/envs/prod/terraform.tfvars
+  TFVARS_PROD_B64 = "<base64-prod-terraform-tfvars>"
+  LLM_API_KEY     = "<groq-api-key>"
+}

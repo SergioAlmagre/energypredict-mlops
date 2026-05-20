@@ -1,4 +1,4 @@
-﻿import { appConfig } from "./config.js";
+import { appConfig } from "./config.js";
 
 export async function apiFetch(path, { method = "GET", token, body, formEncoded = false } = {}) {
   const headers = {};
@@ -31,4 +31,8 @@ export async function apiFetch(path, { method = "GET", token, body, formEncoded 
   }
 
   return payload;
+}
+
+export function isHttpUrl(url) {
+  return typeof url === "string" && /^https?:\/\//i.test(url);
 }

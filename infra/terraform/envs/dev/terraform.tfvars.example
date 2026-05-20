@@ -1,0 +1,54 @@
+environment                      = "dev"
+project_name                     = "<project-name>"
+location                         = "<azure-region>"
+resource_group_name              = "rg-<project>-dev"
+acr_name                         = "<project>devacr01"
+aks_name                         = "aks-<project>-dev"
+key_vault_name                   = "kv-<project>-dev-01"
+key_vault_purge_protection_enabled   = false
+key_vault_soft_delete_retention_days = 7
+log_analytics_name               = "log-<project>-dev"
+create_dns_zone                  = false
+dns_zone_name                    = ""
+dns_resource_group_name          = ""
+kubernetes_version               = null
+aks_location                     = null
+node_count                       = 1
+node_vm_size                     = "Standard_D2s_v3"
+enable_databricks                = true
+databricks_workspace_name        = "dbw-<project>-dev"
+databricks_sku                   = "premium"
+enable_postgresql                = true
+postgresql_server_name           = "pg-<project>-dev"
+postgresql_location              = "<azure-region>"
+postgresql_database_name         = "<db-name>"
+postgresql_admin_username        = "<db-admin-user>"
+postgresql_admin_password        = "<db-admin-password>"
+postgresql_sku_name              = "B_Standard_B1ms"
+postgresql_storage_mb            = 32768
+postgresql_version               = "16"
+postgresql_public_access_enabled = true
+enable_eventhub_streaming        = true
+eventhub_namespace_name          = "evhns-<project>-dev"
+eventhub_namespace_sku           = "Standard"
+eventhub_namespace_capacity      = 1
+eventhub_name                    = "evh-<project>-telemetry-dev"
+eventhub_partition_count         = 2
+eventhub_message_retention_days  = 1
+eventhub_consumer_group          = "energypredict-consumer"
+stream_ingestion_enabled         = true
+prediction_loop_interval_seconds = 10
+llm_provider                     = "groq"
+llm_model                        = "llama-3.1-70b-versatile"
+llm_endpoint                     = "https://api.groq.com/openai/v1/chat/completions"
+
+key_vault_app_secrets = {
+  JWT_SECRET_KEY = "<jwt-secret>"
+  FERNET_KEY     = "<fernet-key>"
+  DATABASE_URL   = "<database-url>"
+}
+
+tags = {
+  owner      = "<owner>"
+  costcenter = "<cost-center>"
+}

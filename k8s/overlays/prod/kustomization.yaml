@@ -7,11 +7,14 @@ resources:
 nameSuffix: -prod
 replicas:
   - name: energypredict-api
-    count: 3
+    count: 1
 images:
   - name: energypredictacr.azurecr.io/energypredict-api
     newTag: prod-latest
 patches:
+  - path: patch-deployment-rollout.yaml
+  - path: patch-deployment-resources.yaml
+  - path: patch-deployment-secretproviderclass.yaml
   - path: patch-configmap.yaml
   - path: patch-serviceaccount.yaml
   - path: patch-secretproviderclass.yaml

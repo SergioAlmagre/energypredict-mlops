@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class PredictionRequest(BaseModel):
@@ -65,3 +65,21 @@ class TrainAndPromoteResponse(BaseModel):
     promoted: bool
     promotion_reason: str
     metrics: TrainMetrics
+
+
+class RiskThresholdResponse(BaseModel):
+    low_max: float = Field(..., ge=0.0, le=1.0)
+    medium_max: float = Field(..., ge=0.0, le=1.0)
+    updated_by_user_id: str | None = None
+    updated_at: datetime
+
+
+class RiskThresholdUpdateRequest(BaseModel):
+    low_max: float = Field(..., ge=0.0, le=1.0)
+    medium_max: float = Field(..., ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def validate_order(self) -> "RiskThresholdUpdateRequest":
+        if self.low_max >= self.medium_max:
+            raise ValueError("low_max must be lower than medium_max")
+        return self

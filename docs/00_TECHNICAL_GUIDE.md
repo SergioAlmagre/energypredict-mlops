@@ -14,7 +14,7 @@ Documento extendido para el equipo técnico con arquitectura, operación y evoluci
 Ver `docs/02_ARCHITECTURE.md` y `docs/diagrams/architecture.mmd`.
 
 ## 3. Operación
-- E2E Azure/AKS/DevOps: `RUNBOOK_E2E_AZURE_DEVOPS.md`
+- E2E Azure/AKS/DevOps: sección `Full operational runbook (integrated)` en `README.md`.
 
 ## 4. Seguridad
 Ver `docs/05_SECURITY_AUTH_ENCRYPTION.md`.
@@ -30,4 +30,5 @@ Ver `docs/07_AKS_PRODUCTION_CICD.md`.
 2. MLflow remoto gestionado.
 3. APIM policies y observabilidad completa.
 4. Pruebas de carga y SLOs.
+
 

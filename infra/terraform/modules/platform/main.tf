@@ -18,9 +18,18 @@ locals {
     )
   } : {}
 
-  effective_app_secrets = merge(var.key_vault_app_secrets, local.generated_app_secrets)
-  effective_namespace   = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
-  effective_sa_name     = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  effective_app_secrets  = merge(var.key_vault_app_secrets, local.generated_app_secrets)
+  effective_namespace    = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
+  effective_sa_name      = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  effective_aks_location = coalesce(var.aks_location, azurerm_resource_group.this.location)
+  effective_eventhub_namespace_name = coalesce(
+    var.eventhub_namespace_name,
+    "${var.project_name}-${var.environment}-evhns"
+  )
+  effective_eventhub_name = coalesce(
+    var.eventhub_name,
+    "${var.project_name}-${var.environment}-events"
+  )
 }
 
 data "azurerm_client_config" "current" {}
@@ -51,9 +60,39 @@ resource "azurerm_container_registry" "this" {
 
 resource "azurerm_user_assigned_identity" "aks" {
   name                = "${var.aks_name}-uami"
-  location            = azurerm_resource_group.this.location
+  location            = local.effective_aks_location
   resource_group_name = azurerm_resource_group.this.name
   tags                = local.base_tags
+}
+
+resource "azurerm_eventhub_namespace" "this" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  name                = local.effective_eventhub_namespace_name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = var.eventhub_namespace_sku
+  capacity            = var.eventhub_namespace_sku == "Standard" ? var.eventhub_namespace_capacity : null
+  tags                = local.base_tags
+}
+
+resource "azurerm_eventhub" "this" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  name                = local.effective_eventhub_name
+  namespace_name      = azurerm_eventhub_namespace.this[0].name
+  resource_group_name = azurerm_resource_group.this.name
+  partition_count     = var.eventhub_partition_count
+  message_retention   = var.eventhub_message_retention_days
+}
+
+resource "azurerm_eventhub_consumer_group" "this" {
+  count = var.enable_eventhub_streaming && var.eventhub_consumer_group != "$Default" ? 1 : 0
+
+  name                = var.eventhub_consumer_group
+  namespace_name      = azurerm_eventhub_namespace.this[0].name
+  eventhub_name       = azurerm_eventhub.this[0].name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_key_vault" "this" {
@@ -62,10 +101,25 @@ resource "azurerm_key_vault" "this" {
   resource_group_name           = azurerm_resource_group.this.name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
-  purge_protection_enabled      = true
-  soft_delete_retention_days    = 7
+  purge_protection_enabled      = var.key_vault_purge_protection_enabled
+  soft_delete_retention_days    = var.key_vault_soft_delete_retention_days
   public_network_access_enabled = true
   tags                          = local.base_tags
+}
+
+resource "azurerm_key_vault_access_policy" "terraform_operator" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Purge",
+    "Recover",
+  ]
 }
 
 resource "azurerm_key_vault_secret" "app_secrets" {
@@ -74,26 +128,31 @@ resource "azurerm_key_vault_secret" "app_secrets" {
   name         = replace(each.key, "_", "-")
   value        = each.value
   key_vault_id = azurerm_key_vault.this.id
+
+  depends_on = [azurerm_key_vault_access_policy.terraform_operator]
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
   count = var.enable_postgresql ? 1 : 0
 
   name                   = coalesce(var.postgresql_server_name, "${var.project_name}-${var.environment}-pg")
-  location               = azurerm_resource_group.this.location
+  location               = coalesce(var.postgresql_location, azurerm_resource_group.this.location)
   resource_group_name    = azurerm_resource_group.this.name
   version                = var.postgresql_version
   delegated_subnet_id    = null
   private_dns_zone_id    = null
   administrator_login    = var.postgresql_admin_username
   administrator_password = var.postgresql_admin_password
-  zone                   = "1"
   sku_name               = var.postgresql_sku_name
   storage_mb             = var.postgresql_storage_mb
 
   public_network_access_enabled = var.postgresql_public_access_enabled
 
   tags = local.base_tags
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "this" {
@@ -120,6 +179,19 @@ resource "azurerm_role_assignment" "kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
+# Access-policy fallback for workloads using UAMI when the Key Vault is operating
+# in access-policy authorization mode (common in mixed/legacy setups).
+resource "azurerm_key_vault_access_policy" "aks_workload_identity" {
+  key_vault_id = azurerm_key_vault.this.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.aks.principal_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+  ]
+}
+
 resource "azurerm_databricks_workspace" "this" {
   count = var.enable_databricks ? 1 : 0
 
@@ -143,7 +215,7 @@ resource "azurerm_static_web_app" "this" {
 
 resource "azurerm_kubernetes_cluster" "this" {
   name                      = var.aks_name
-  location                  = azurerm_resource_group.this.location
+  location                  = local.effective_aks_location
   resource_group_name       = azurerm_resource_group.this.name
   dns_prefix                = "${var.project_name}-${var.environment}"
   kubernetes_version        = var.kubernetes_version
@@ -181,18 +253,25 @@ resource "azurerm_kubernetes_cluster" "this" {
 resource "azurerm_role_assignment" "aks_pull_acr" {
   scope                = azurerm_container_registry.this.id
   role_definition_name = "AcrPull"
+  principal_id         = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
+}
+
+resource "azurerm_role_assignment" "aks_eventhub_data_receiver" {
+  count = var.enable_eventhub_streaming ? 1 : 0
+
+  scope                = azurerm_eventhub_namespace.this[0].id
+  role_definition_name = "Azure Event Hubs Data Receiver"
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
 resource "azurerm_federated_identity_credential" "aks_workload" {
   count = var.enable_workload_identity ? 1 : 0
 
-  name                = "${var.project_name}-${var.environment}-workload-fic"
-  resource_group_name = azurerm_resource_group.this.name
-  parent_id           = azurerm_user_assigned_identity.aks.id
-  audience            = ["api://AzureADTokenExchange"]
-  issuer              = azurerm_kubernetes_cluster.this.oidc_issuer_url
-  subject             = "system:serviceaccount:${local.effective_namespace}:${local.effective_sa_name}"
+  name                      = "${var.project_name}-${var.environment}-workload-fic"
+  user_assigned_identity_id = azurerm_user_assigned_identity.aks.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
+  subject                   = "system:serviceaccount:${local.effective_namespace}:${local.effective_sa_name}"
 }
 
 resource "azurerm_dns_zone" "this" {

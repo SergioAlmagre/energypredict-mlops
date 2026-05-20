@@ -3,5 +3,5 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: energypredict-api
 spec:
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 3

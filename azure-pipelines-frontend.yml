@@ -21,7 +21,7 @@ stages:
     jobs:
       - job: validate
         pool:
-          vmImage: ubuntu-latest
+          vmImage: ubuntu-22.04
         steps:
           - checkout: self
 
@@ -30,7 +30,27 @@ stages:
               test -f frontend/simulator-portal/index.html
               test -f frontend/simulator-portal/staticwebapp.config.json
               test -f frontend/simulator-portal/config.template.js
+              grep -q "LIVE_POLL_INTERVAL_SECONDS" frontend/simulator-portal/config.template.js
             displayName: Validate static portal files
+
+          - script: |
+              set -euo pipefail
+              CFG="frontend/simulator-portal/staticwebapp.config.json"
+              grep -q '"X-Content-Type-Options"[[:space:]]*:[[:space:]]*"nosniff"' "$CFG"
+              grep -q '"X-Frame-Options"[[:space:]]*:[[:space:]]*"DENY"' "$CFG"
+              grep -q '"Referrer-Policy"[[:space:]]*:' "$CFG"
+              grep -q '"Permissions-Policy"[[:space:]]*:' "$CFG"
+              echo "Frontend security headers baseline OK."
+            displayName: Frontend security headers check
+
+          - script: |
+              set -euo pipefail
+              if grep -RInE "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z\\-_]{20,})" frontend/simulator-portal; then
+                echo "Potential hardcoded secrets detected in frontend files."
+                exit 1
+              fi
+              echo "No obvious hardcoded secret patterns found in frontend."
+            displayName: Frontend secret-pattern scan
 
   - stage: Deploy_Dev
     displayName: Deploy Frontend Dev
@@ -55,9 +75,37 @@ stages:
                     inlineScript: |
                       set -euo pipefail
 
+                      API_BASE_URL="$(FRONTEND_DEV_API_BASE_URL)"
+                      az aks get-credentials --resource-group $(AKS_DEV_RESOURCE_GROUP) --name $(AKS_DEV_CLUSTER_NAME) --overwrite-existing
+                      echo "Waiting for backend deployment availability in dev..."
+                      for _ in $(seq 1 40); do
+                        AVAILABLE="$(kubectl -n energypredict-dev get deploy energypredict-api-dev -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                        if [ -n "${AVAILABLE}" ] && [ "${AVAILABLE}" -ge 1 ] 2>/dev/null; then
+                          break
+                        fi
+                        sleep 15
+                      done
+
+                      AVAILABLE="$(kubectl -n energypredict-dev get deploy energypredict-api-dev -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                      if [ -z "${AVAILABLE}" ] || [ "${AVAILABLE}" -lt 1 ] 2>/dev/null; then
+                        echo "Backend deploy not ready in dev (energypredict-api-dev). Run app pipeline first."
+                        exit 1
+                      fi
+
+                      API_HOST="$(kubectl -n energypredict-dev get ingress energypredict-api-dev -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
+                      if [ -n "${API_HOST}" ]; then
+                        API_SCHEME="${FRONTEND_API_SCHEME_DEV:-http}"
+                        API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+                      if [ -z "${API_BASE_URL}" ]; then
+                        echo "API_BASE_URL is empty in dev and ingress host is unavailable."
+                        exit 1
+                      fi
+
                       sed \
-                        -e "s|__API_BASE_URL__|$(FRONTEND_DEV_API_BASE_URL)|g" \
+                        -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|dev|g" \
+                        -e "s|__LIVE_POLL_INTERVAL_SECONDS__|${FRONTEND_LIVE_POLL_INTERVAL_SECONDS_DEV:-5}|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 
                       SWA_TOKEN=$(az staticwebapp secrets list \
@@ -98,9 +146,41 @@ stages:
                     inlineScript: |
                       set -euo pipefail
 
+                      API_BASE_URL="$(FRONTEND_PROD_API_BASE_URL)"
+                      az aks get-credentials --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --overwrite-existing
+                      echo "Waiting for backend deployment availability in prod..."
+                      for _ in $(seq 1 40); do
+                        AVAILABLE="$(kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                        if [ -n "${AVAILABLE}" ] && [ "${AVAILABLE}" -ge 1 ] 2>/dev/null; then
+                          break
+                        fi
+                        sleep 15
+                      done
+
+                      AVAILABLE="$(kubectl -n energypredict-prod get deploy energypredict-api-prod -o jsonpath='{.status.availableReplicas}' 2>/dev/null || true)"
+                      if [ -z "${AVAILABLE}" ] || [ "${AVAILABLE}" -lt 1 ] 2>/dev/null; then
+                        echo "Backend deploy not ready in prod (energypredict-api-prod). Run app pipeline first."
+                        exit 1
+                      fi
+
+                      API_HOST="$(kubectl -n energypredict-prod get ingress energypredict-api-prod -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
+                      if [ -n "${API_HOST}" ]; then
+                        API_SCHEME="${FRONTEND_API_SCHEME_PROD:-https}"
+                        API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
+                      fi
+                      if [ -z "${API_BASE_URL}" ]; then
+                        echo "API_BASE_URL is empty in prod and ingress host is unavailable."
+                        exit 1
+                      fi
+                      if ! echo "${API_BASE_URL}" | grep -qE '^https://'; then
+                        echo "Production frontend must target an HTTPS API_BASE_URL. Got: ${API_BASE_URL}"
+                        exit 1
+                      fi
+
                       sed \
-                        -e "s|__API_BASE_URL__|$(FRONTEND_PROD_API_BASE_URL)|g" \
+                        -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|prod|g" \
+                        -e "s|__LIVE_POLL_INTERVAL_SECONDS__|${FRONTEND_LIVE_POLL_INTERVAL_SECONDS_PROD:-5}|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 
                       SWA_TOKEN=$(az staticwebapp secrets list \

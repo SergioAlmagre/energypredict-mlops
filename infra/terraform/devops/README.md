@@ -40,6 +40,29 @@ Si creas la service connection por Terraform:
 3. Completar `infra/terraform/devops/terraform.tfvars`.
 4. Aplicar este stack.
 
+## Variables recomendadas para backend remoto de Terraform
+Incluye en `variables` del Variable Group:
+- `TF_STATE_RESOURCE_GROUP`
+- `TF_STATE_LOCATION`
+- `TF_STATE_STORAGE_ACCOUNT`
+- `TF_STATE_CONTAINER`
+- `TF_STATE_KEY_DEV`
+- `TF_STATE_KEY_PROD`
+
+Variables recomendadas para HTTPS en API (cert-manager + Let's Encrypt):
+- `LETSENCRYPT_EMAIL`
+- `FRONTEND_API_SCHEME_PROD` (recomendado: `https`)
+
+Opcionalmente, puedes inyectar `terraform.tfvars` como secretos (base64) en `secret_variables`:
+- `TFVARS_DEV_B64`
+- `TFVARS_PROD_B64`
+
+Generar base64 local:
+```powershell
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((Get-Content infra/terraform/envs/dev/terraform.tfvars -Raw)))
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((Get-Content infra/terraform/envs/prod/terraform.tfvars -Raw)))
+```
+
 ## Seguridad
 - No subir `terraform.tfvars`.
 - No dejar PAT/SPN secrets en archivos `.example`.
