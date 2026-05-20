@@ -135,7 +135,7 @@ EOF
     \"metadata\":{
       \"annotations\":{
         \"cert-manager.io/cluster-issuer\":\"${CLUSTER_ISSUER_NAME}\",
-        \"acme.cert-manager.io/http01-ingress-class\":\"${INGRESS_CLASS}\",
+        \"acme.cert-manager.io/http01-edit-in-place\":\"true\",
         \"nginx.ingress.kubernetes.io/ssl-redirect\":\"true\"
       }
     },
