@@ -47,7 +47,7 @@ variables = {
 
   FRONTEND_DEV_API_BASE_URL  = "https://<api-dev-host>/api/v1"
   FRONTEND_PROD_API_BASE_URL = "https://<api-prod-host>/api/v1"
-  FRONTEND_API_SCHEME_DEV    = "http"
+  FRONTEND_API_SCHEME_DEV    = "https"
   FRONTEND_API_SCHEME_PROD   = "https"
   LETSENCRYPT_EMAIL          = "<you@example.com>"
 
