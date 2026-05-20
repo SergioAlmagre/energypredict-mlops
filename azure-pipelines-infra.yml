@@ -143,6 +143,7 @@ stages:
                     azureSubscription: $(AZURE_SERVICE_CONNECTION)
                     scriptType: bash
                     scriptLocation: inlineScript
+                    addSpnToEnvironment: true
                     inlineScript: |
                       set -euo pipefail
                       cd infra/terraform/envs/dev
@@ -164,6 +165,17 @@ stages:
                         -backend-config="container_name=${TF_STATE_CONTAINER}" \
                         -backend-config="key=${TF_STATE_KEY_DEV}" \
                         -backend-config="access_key=${ACCOUNT_KEY}"
+
+                      # If the access policy already exists in Azure but not in state, import it.
+                      if ! terraform state show module.platform.azurerm_key_vault_access_policy.terraform_operator >/dev/null 2>&1; then
+                        SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                        SP_OBJECT_ID="$(az ad sp show --id "$servicePrincipalId" --query id -o tsv 2>/dev/null || true)"
+                        if [ -n "${SP_OBJECT_ID}" ] && [ -n "$(KEY_VAULT_NAME_DEV)" ]; then
+                          POLICY_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/$(AKS_DEV_RESOURCE_GROUP)/providers/Microsoft.KeyVault/vaults/$(KEY_VAULT_NAME_DEV)/objectId/${SP_OBJECT_ID}"
+                          terraform import -input=false module.platform.azurerm_key_vault_access_policy.terraform_operator "${POLICY_ID}" || true
+                        fi
+                      fi
+
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve
 
   - stage: Terraform_Plan_Prod
@@ -257,6 +269,7 @@ stages:
                     azureSubscription: $(AZURE_SERVICE_CONNECTION)
                     scriptType: bash
                     scriptLocation: inlineScript
+                    addSpnToEnvironment: true
                     inlineScript: |
                       set -euo pipefail
                       cd infra/terraform/envs/prod
@@ -278,4 +291,15 @@ stages:
                         -backend-config="container_name=${TF_STATE_CONTAINER}" \
                         -backend-config="key=${TF_STATE_KEY_PROD}" \
                         -backend-config="access_key=${ACCOUNT_KEY}"
+
+                      # If the access policy already exists in Azure but not in state, import it.
+                      if ! terraform state show module.platform.azurerm_key_vault_access_policy.terraform_operator >/dev/null 2>&1; then
+                        SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                        SP_OBJECT_ID="$(az ad sp show --id "$servicePrincipalId" --query id -o tsv 2>/dev/null || true)"
+                        if [ -n "${SP_OBJECT_ID}" ] && [ -n "$(KEY_VAULT_NAME_PROD)" ]; then
+                          POLICY_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/$(AKS_PROD_RESOURCE_GROUP)/providers/Microsoft.KeyVault/vaults/$(KEY_VAULT_NAME_PROD)/objectId/${SP_OBJECT_ID}"
+                          terraform import -input=false module.platform.azurerm_key_vault_access_policy.terraform_operator "${POLICY_ID}" || true
+                        fi
+                      fi
+
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve
