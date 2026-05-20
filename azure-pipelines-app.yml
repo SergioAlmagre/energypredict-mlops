@@ -120,6 +120,14 @@ stages:
                         kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
                       }
 
+                      DEV_UAMI_ID="$(az identity list --query "[?clientId=='$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)'] | [0].id" -o tsv)"
+                      if [ -z "${DEV_UAMI_ID}" ]; then
+                        echo "ERROR: AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV ($(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)) not found in this subscription/tenant."
+                        echo "Update Variable Group 'energypredict-shared' with the current Terraform output identity_client_id for dev."
+                        exit 1
+                      fi
+                      echo "Using workload identity (dev): ${DEV_UAMI_ID}"
+
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-serviceaccount.yaml
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
@@ -176,6 +184,14 @@ stages:
                         fi
                         kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
                       }
+
+                      PROD_UAMI_ID="$(az identity list --query "[?clientId=='$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)'] | [0].id" -o tsv)"
+                      if [ -z "${PROD_UAMI_ID}" ]; then
+                        echo "ERROR: AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD ($(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)) not found in this subscription/tenant."
+                        echo "Update Variable Group 'energypredict-shared' with the current Terraform output identity_client_id for prod."
+                        exit 1
+                      fi
+                      echo "Using workload identity (prod): ${PROD_UAMI_ID}"
 
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-serviceaccount.yaml
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
