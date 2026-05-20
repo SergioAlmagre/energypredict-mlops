@@ -249,6 +249,8 @@ Frontend:
 - `STATIC_WEB_APP_PROD_RESOURCE_GROUP`
 - `FRONTEND_DEV_API_BASE_URL`
 - `FRONTEND_PROD_API_BASE_URL`
+- `FRONTEND_API_SCHEME_PROD` (recomendado: `https`)
+- `LETSENCRYPT_EMAIL`
 
 Terraform remote state:
 - `TF_STATE_RESOURCE_GROUP`
@@ -386,7 +388,7 @@ CD dev/prod:
 
 Endpoint online generado:
 - Dev: `http://api-dev.<public-ip-dashed>.nip.io/api/v1`
-- Prod: `http://api.<public-ip-dashed>.nip.io/api/v1`
+- Prod: `https://api.<public-ip-dashed>.nip.io/api/v1`
 
 ### Frontend deployment details
 Pipeline: `azure-pipelines-frontend.yml`

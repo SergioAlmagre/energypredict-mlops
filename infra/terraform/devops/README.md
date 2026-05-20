@@ -49,6 +49,10 @@ Incluye en `variables` del Variable Group:
 - `TF_STATE_KEY_DEV`
 - `TF_STATE_KEY_PROD`
 
+Variables recomendadas para HTTPS en API (cert-manager + Let's Encrypt):
+- `LETSENCRYPT_EMAIL`
+- `FRONTEND_API_SCHEME_PROD` (recomendado: `https`)
+
 Opcionalmente, puedes inyectar `terraform.tfvars` como secretos (base64) en `secret_variables`:
 - `TFVARS_DEV_B64`
 - `TFVARS_PROD_B64`

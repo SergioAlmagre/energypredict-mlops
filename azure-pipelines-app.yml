@@ -199,7 +199,7 @@ stages:
                       sed -i "s|REPLACE_ME_TENANT_ID|$(AZURE_TENANT_ID)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       az aks get-credentials --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --overwrite-existing
                       kubectl apply -k k8s/overlays/prod
-                      ENABLE_HTTPS=true LETSENCRYPT_EMAIL="$(LETSENCRYPT_EMAIL)" bash scripts/prepare_public_api_endpoint.sh prod
+                      ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' bash scripts/prepare_public_api_endpoint.sh prod
                       kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
                       kubectl set env deployment/energypredict-api-prod CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) -n energypredict-prod
                       echo "Public API endpoint (prod): ${PUBLIC_API_BASE_URL:-not-set}"
