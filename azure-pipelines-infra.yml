@@ -53,9 +53,124 @@ stages:
                   --account-key "$ACCOUNT_KEY" \
                   --public-access off 1>/dev/null
 
+  - stage: Precheck_Infra
+    displayName: Precheck Infra Inputs and Permissions
+    dependsOn: Bootstrap_TFState
+    jobs:
+      - job: precheck
+        pool:
+          vmImage: ubuntu-22.04
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Validate tfvars, remote state and RBAC
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              addSpnToEnvironment: true
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+
+                TF_STATE_RESOURCE_GROUP="${TF_STATE_RESOURCE_GROUP:-rg-energypredict-tfstate}"
+                TF_STATE_STORAGE_ACCOUNT="${TF_STATE_STORAGE_ACCOUNT:-stenergypredicttfstate01}"
+                TF_STATE_CONTAINER="${TF_STATE_CONTAINER:-tfstate}"
+                TF_STATE_KEY_DEV="${TF_STATE_KEY_DEV:-dev.terraform.tfstate}"
+                TF_STATE_KEY_PROD="${TF_STATE_KEY_PROD:-prod.terraform.tfstate}"
+                SOURCE_BRANCH="$(Build.SourceBranch)"
+                WARNINGS=0
+
+                echo "Precheck branch: ${SOURCE_BRANCH}"
+                echo "Remote state RG: ${TF_STATE_RESOURCE_GROUP}"
+                echo "Remote state SA: ${TF_STATE_STORAGE_ACCOUNT}"
+                echo "Remote state container: ${TF_STATE_CONTAINER}"
+
+                # Validate remote state resources are accessible.
+                az group show --name "${TF_STATE_RESOURCE_GROUP}" 1>/dev/null
+                az storage account show --name "${TF_STATE_STORAGE_ACCOUNT}" --resource-group "${TF_STATE_RESOURCE_GROUP}" 1>/dev/null
+                ACCOUNT_KEY="$(az storage account keys list \
+                  --resource-group "${TF_STATE_RESOURCE_GROUP}" \
+                  --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
+                  --query '[0].value' -o tsv)"
+                az storage container show \
+                  --name "${TF_STATE_CONTAINER}" \
+                  --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
+                  --account-key "${ACCOUNT_KEY}" 1>/dev/null
+
+                check_tfvars() {
+                  local env_name="$1"
+                  local b64_value="$2"
+                  local output_file="$3"
+                  local required="$4"
+
+                  if [ -n "${b64_value}" ]; then
+                    echo "${b64_value}" | base64 -d > "${output_file}"
+                  fi
+
+                  if [ ! -f "${output_file}" ]; then
+                    if [ "${required}" = "1" ]; then
+                      echo "Missing ${output_file}. Provide ${env_name} tfvars in repo or ${env_name}_B64 variable."
+                      return 1
+                    fi
+                    return 0
+                  fi
+
+                  grep -Eq '^[[:space:]]*key_vault_name[[:space:]]*=' "${output_file}" || { echo "Missing key_vault_name in ${output_file}"; return 1; }
+                  grep -Eq '^[[:space:]]*resource_group_name[[:space:]]*=' "${output_file}" || { echo "Missing resource_group_name in ${output_file}"; return 1; }
+                }
+
+                DEV_TFVARS="infra/terraform/envs/dev/terraform.tfvars"
+                PROD_TFVARS="infra/terraform/envs/prod/terraform.tfvars"
+
+                DEV_REQUIRED=1
+                PROD_REQUIRED=0
+                if [ "${SOURCE_BRANCH}" = "refs/heads/main" ]; then
+                  PROD_REQUIRED=1
+                fi
+
+                check_tfvars "TFVARS_DEV" "${TFVARS_DEV_B64:-}" "${DEV_TFVARS}" "${DEV_REQUIRED}"
+                check_tfvars "TFVARS_PROD" "${TFVARS_PROD_B64:-}" "${PROD_TFVARS}" "${PROD_REQUIRED}"
+
+                # Check current SP role assignments to reduce apply surprises.
+                SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                SP_OBJECT_ID="$(az ad sp show --id "$servicePrincipalId" --query id -o tsv 2>/dev/null || true)"
+                if [ -z "${SP_OBJECT_ID}" ]; then
+                  echo "Could not resolve service principal object id from service connection."
+                  exit 1
+                fi
+
+                ROLE_NAMES="$(az role assignment list --assignee-object-id "${SP_OBJECT_ID}" --scope "/subscriptions/${SUBSCRIPTION_ID}" --include-inherited --query "[].roleDefinitionName" -o tsv | tr '\n' ' ')"
+                echo "Service principal roles at subscription scope (inherited included): ${ROLE_NAMES:-<none>}"
+                if ! echo " ${ROLE_NAMES} " | grep -Eq ' (Owner|User Access Administrator) '; then
+                  echo "Precheck warning: no Owner/User Access Administrator detected at subscription scope."
+                  echo "Terraform may fail on roleAssignments/write unless these roles are granted at subscription or target RG scope."
+                  WARNINGS=$((WARNINGS + 1))
+                fi
+
+                # Validate backend keys are non-empty (for branch-targeted runs).
+                [ -n "${TF_STATE_KEY_DEV}" ] || { echo "TF_STATE_KEY_DEV is empty"; exit 1; }
+                if [ "${SOURCE_BRANCH}" = "refs/heads/main" ]; then
+                  [ -n "${TF_STATE_KEY_PROD}" ] || { echo "TF_STATE_KEY_PROD is empty"; exit 1; }
+                fi
+
+                echo "================ Infra Precheck Summary ================"
+                echo "OK   - Remote state RG/Storage/Container reachable"
+                echo "OK   - tfvars files present (repo or TFVARS_*_B64)"
+                echo "OK   - required tfvars keys validated"
+                echo "OK   - service principal resolved"
+                echo "OK   - backend keys validated"
+                if [ "${WARNINGS}" -gt 0 ]; then
+                  echo "WARN - ${WARNINGS} non-blocking warning(s) detected"
+                else
+                  echo "OK   - no warnings"
+                fi
+                echo "======================================================="
+                echo "Infra precheck passed."
+
   - stage: Terraform_Plan_Dev
     displayName: Terraform Plan Dev
-    dependsOn: Bootstrap_TFState
+    dependsOn: Precheck_Infra
     jobs:
       - job: plan_dev
         pool:
@@ -191,6 +306,21 @@ stages:
                           terraform import -input=false module.platform.azurerm_key_vault_access_policy.terraform_operator "${POLICY_ID}" || true
                         fi
                       fi
+
+                      # If common Key Vault app secrets already exist but are not in state, import them.
+                      for MAPPING in "DATABASE_URL:DATABASE-URL" "JWT_SECRET_KEY:JWT-SECRET-KEY" "FERNET_KEY:FERNET-KEY"; do
+                        TF_KEY="${MAPPING%%:*}"
+                        KV_SECRET_NAME="${MAPPING##*:}"
+                        TF_ADDR="module.platform.azurerm_key_vault_secret.app_secrets[\"${TF_KEY}\"]"
+                        if terraform state show "${TF_ADDR}" >/dev/null 2>&1; then
+                          continue
+                        fi
+                        SECRET_ID="$(az keyvault secret show --vault-name "$(KEY_VAULT_NAME_DEV)" --name "${KV_SECRET_NAME}" --query id -o tsv 2>/dev/null || true)"
+                        if [ -n "${SECRET_ID}" ]; then
+                          echo "Importing existing Key Vault secret ${KV_SECRET_NAME} into state (${TF_ADDR})"
+                          terraform import -input=false "${TF_ADDR}" "${SECRET_ID}" || true
+                        fi
+                      done
 
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve
 
@@ -333,5 +463,20 @@ stages:
                           terraform import -input=false module.platform.azurerm_key_vault_access_policy.terraform_operator "${POLICY_ID}" || true
                         fi
                       fi
+
+                      # If common Key Vault app secrets already exist but are not in state, import them.
+                      for MAPPING in "DATABASE_URL:DATABASE-URL" "JWT_SECRET_KEY:JWT-SECRET-KEY" "FERNET_KEY:FERNET-KEY"; do
+                        TF_KEY="${MAPPING%%:*}"
+                        KV_SECRET_NAME="${MAPPING##*:}"
+                        TF_ADDR="module.platform.azurerm_key_vault_secret.app_secrets[\"${TF_KEY}\"]"
+                        if terraform state show "${TF_ADDR}" >/dev/null 2>&1; then
+                          continue
+                        fi
+                        SECRET_ID="$(az keyvault secret show --vault-name "$(KEY_VAULT_NAME_PROD)" --name "${KV_SECRET_NAME}" --query id -o tsv 2>/dev/null || true)"
+                        if [ -n "${SECRET_ID}" ]; then
+                          echo "Importing existing Key Vault secret ${KV_SECRET_NAME} into state (${TF_ADDR})"
+                          terraform import -input=false "${TF_ADDR}" "${SECRET_ID}" || true
+                        fi
+                      done
 
                       terraform apply -input=false -var-file=terraform.tfvars -auto-approve
