@@ -69,3 +69,39 @@ output "postgresql_server_fqdn" {
 output "postgresql_database_name" {
   value = try(azurerm_postgresql_flexible_server_database.this[0].name, null)
 }
+
+output "eventhub_namespace_name" {
+  value = try(azurerm_eventhub_namespace.this[0].name, null)
+}
+
+output "eventhub_namespace_id" {
+  value = try(azurerm_eventhub_namespace.this[0].id, null)
+}
+
+output "eventhub_name" {
+  value = try(azurerm_eventhub.this[0].name, null)
+}
+
+output "eventhub_consumer_group" {
+  value = var.enable_eventhub_streaming ? var.eventhub_consumer_group : null
+}
+
+output "stream_ingestion_enabled" {
+  value = var.stream_ingestion_enabled
+}
+
+output "prediction_loop_interval_seconds" {
+  value = var.prediction_loop_interval_seconds
+}
+
+output "llm_provider" {
+  value = var.llm_provider
+}
+
+output "llm_model" {
+  value = var.llm_model
+}
+
+output "llm_endpoint" {
+  value = var.llm_endpoint
+}

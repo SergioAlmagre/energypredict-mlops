@@ -30,6 +30,7 @@ stages:
               test -f frontend/simulator-portal/index.html
               test -f frontend/simulator-portal/staticwebapp.config.json
               test -f frontend/simulator-portal/config.template.js
+              grep -q "LIVE_POLL_INTERVAL_SECONDS" frontend/simulator-portal/config.template.js
             displayName: Validate static portal files
 
           - script: |
@@ -104,6 +105,7 @@ stages:
                       sed \
                         -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|dev|g" \
+                        -e "s|__LIVE_POLL_INTERVAL_SECONDS__|${FRONTEND_LIVE_POLL_INTERVAL_SECONDS_DEV:-5}|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 
                       SWA_TOKEN=$(az staticwebapp secrets list \
@@ -170,10 +172,15 @@ stages:
                         echo "API_BASE_URL is empty in prod and ingress host is unavailable."
                         exit 1
                       fi
+                      if ! echo "${API_BASE_URL}" | grep -qE '^https://'; then
+                        echo "Production frontend must target an HTTPS API_BASE_URL. Got: ${API_BASE_URL}"
+                        exit 1
+                      fi
 
                       sed \
                         -e "s|__API_BASE_URL__|${API_BASE_URL}|g" \
                         -e "s|__APP_ENV__|prod|g" \
+                        -e "s|__LIVE_POLL_INTERVAL_SECONDS__|${FRONTEND_LIVE_POLL_INTERVAL_SECONDS_PROD:-5}|g" \
                         frontend/simulator-portal/config.template.js > frontend/simulator-portal/config.js
 
                       SWA_TOKEN=$(az staticwebapp secrets list \

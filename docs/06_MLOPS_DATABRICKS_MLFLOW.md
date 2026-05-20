@@ -29,3 +29,27 @@
 - Endpoint `/models/train` conectado a Job Databricks.
 - Persistencia de `run_id`, métricas y modelo promovido.
 - Monitoreo de drift y calidad en producción.
+
+## Streaming Databricks -> Event Hub (implemented contract)
+Archivo base del generador:
+- `notebooks/databricks/synthetic_stream_generator.py`
+
+Contrato de evento generado:
+1. `asset_code`
+2. `temperature`
+3. `pressure`
+4. `vibration`
+5. `flow_rate`
+6. `energy_consumption`
+7. `operating_hours`
+
+Metadatos opcionales recomendados:
+1. `event_id`
+2. `event_ts`
+3. `source`
+4. `anomaly`
+
+Objetivo operativo:
+1. Databricks emite eventos continuamente.
+2. Event Hub los entrega al backend.
+3. El worker de API persiste `SensorEvent` y activa alertas.

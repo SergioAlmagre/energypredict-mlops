@@ -51,6 +51,20 @@ variables = {
   FRONTEND_API_SCHEME_PROD   = "https"
   LETSENCRYPT_EMAIL          = "<you@example.com>"
 
+  ENABLE_EVENTHUB_STREAMING_DEV  = "true"
+  ENABLE_EVENTHUB_STREAMING_PROD = "true"
+  EVENTHUB_NAMESPACE_NAME_DEV    = "evhns-<project>-dev"
+  EVENTHUB_NAMESPACE_NAME_PROD   = "evhns-<project>-prod"
+  EVENTHUB_NAME_DEV              = "evh-<project>-telemetry-dev"
+  EVENTHUB_NAME_PROD             = "evh-<project>-telemetry-prod"
+  EVENTHUB_CONSUMER_GROUP        = "energypredict-consumer"
+  STREAM_INGESTION_ENABLED_DEV   = "true"
+  STREAM_INGESTION_ENABLED_PROD  = "true"
+  PREDICTION_LOOP_INTERVAL_SECONDS = "10"
+  LLM_PROVIDER                   = "groq"
+  LLM_MODEL                      = "llama-3.1-70b-versatile"
+  LLM_ENDPOINT                   = "https://api.groq.com/openai/v1/chat/completions"
+
   TF_STATE_RESOURCE_GROUP = "rg-<project>-tfstate"
   TF_STATE_LOCATION       = "<azure-region>"
   TF_STATE_STORAGE_ACCOUNT = "<project>tfstate01"
@@ -65,4 +79,5 @@ secret_variables = {
   TFVARS_DEV_B64 = "<base64-dev-terraform-tfvars>"
   # Optional: base64 content of infra/terraform/envs/prod/terraform.tfvars
   TFVARS_PROD_B64 = "<base64-prod-terraform-tfvars>"
+  LLM_API_KEY     = "<groq-api-key>"
 }

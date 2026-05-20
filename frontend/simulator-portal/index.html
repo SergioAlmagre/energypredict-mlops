@@ -1,28 +1,28 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EnergyPredict Simulator Portal</title>
+    <title>EnergyPredict Live Operations Portal</title>
     <link rel="stylesheet" href="./styles/main.css" />
   </head>
   <body>
     <header class="hero">
       <div>
-        <p class="badge">EnergyPredict Platform</p>
-        <h1>Predictive Maintenance Simulator</h1>
-        <p class="subtitle">Professional UI over simulated data, wired to real API flows for validation scenarios.</p>
+        <p class="badge">EnergyPredict Live Ops</p>
+        <h1>Streaming Predictions Command Center</h1>
+        <p class="subtitle">Live asset telemetry, risk trend, active alerts and admin simulation controls.</p>
       </div>
       <div class="env-panel">
         <label for="apiBaseUrl">API Base URL</label>
         <input id="apiBaseUrl" type="url" placeholder="https://api-dev.example.com/api/v1" />
         <button id="saveApiUrlBtn" type="button">Save</button>
-        <p class="hint">Examples: http://localhost:8000/api/v1, https://api-dev.energypredict.example.com/api/v1</p>
+        <p class="hint">Use HTTPS URL in production.</p>
       </div>
     </header>
 
     <main class="layout">
-      <section class="card">
+      <section id="adminSection" class="card">
         <h2>Authentication</h2>
         <form id="loginForm" class="stack">
           <label>Email</label>
@@ -48,7 +48,33 @@
           <button type="submit">Register</button>
         </form>
         <div id="registerStatus" class="status">No user registration attempted yet.</div>
-        <div id="authStatus" class="status">Not authenticated</div>
+        <div id="authStatus" class="status">Not authenticated.</div>
+      </section>
+
+      <section class="card">
+        <h2>Live Risk State</h2>
+        <p id="liveStatus" class="status">Idle.</p>
+        <div class="metric">
+          <span>Failure Probability</span>
+          <strong id="probabilityValue">0%</strong>
+        </div>
+        <div class="bar-wrap"><div id="probabilityBar" class="bar risk"></div></div>
+
+        <div class="metric">
+          <span>Risk Level</span>
+          <span id="riskLevel" class="pill">UNKNOWN</span>
+        </div>
+
+        <h3>Recommendation</h3>
+        <p id="recommendationText" class="hint">No recommendation yet.</p>
+
+        <h3>Sensors</h3>
+        <label>Temperature</label>
+        <div class="bar-wrap"><div id="temperatureBar" class="bar"></div></div>
+        <label>Pressure</label>
+        <div class="bar-wrap"><div id="pressureBar" class="bar"></div></div>
+        <label>Vibration</label>
+        <div class="bar-wrap"><div id="vibrationBar" class="bar"></div></div>
       </section>
 
       <section class="card">
@@ -61,38 +87,49 @@
       </section>
 
       <section class="card wide">
-        <h2>Run Prediction</h2>
+        <h2>Manual Prediction</h2>
         <form id="predictionForm" class="grid">
-          <label>Asset Code</label>
-          <input id="assetCode" value="ASSET-001" required />
-
-          <label>Temperature C</label>
-          <input id="temperature" type="number" value="82" step="0.1" required />
-
-          <label>Vibration mm/s</label>
-          <input id="vibration" type="number" value="4.4" step="0.1" required />
-
-          <label>Pressure bar</label>
-          <input id="pressure" type="number" value="7.1" step="0.1" required />
-
-          <label>Flow Rate</label>
-          <input id="flowRate" type="number" value="24.5" step="0.1" required />
-
-          <label>Energy Consumption</label>
-          <input id="energyConsumption" type="number" value="356.7" step="0.1" required />
-
-          <label>Operating Hours</label>
-          <input id="operatingHours" type="number" value="2150" required />
-
+          <label>Asset Code</label><input id="assetCode" value="ASSET-001" required />
+          <label>Temperature C</label><input id="temperature" type="number" value="82" step="0.1" required />
+          <label>Vibration mm/s</label><input id="vibration" type="number" value="4.4" step="0.1" required />
+          <label>Pressure bar</label><input id="pressure" type="number" value="7.1" step="0.1" required />
+          <label>Flow Rate</label><input id="flowRate" type="number" value="24.5" step="0.1" required />
+          <label>Energy Consumption</label><input id="energyConsumption" type="number" value="356.7" step="0.1" required />
+          <label>Operating Hours</label><input id="operatingHours" type="number" value="2150" required />
           <button type="submit" class="full">Predict Failure Risk</button>
         </form>
         <pre id="predictionOutput" class="output">No prediction yet.</pre>
       </section>
+
+      <section class="card">
+        <h2>Active Alerts</h2>
+        <ul id="alertsList" class="alerts-list"><li>No active alerts.</li></ul>
+      </section>
+
+      <section class="card">
+        <h2>Admin Controls</h2>
+        <div class="controls">
+          <button id="startSimulationBtn" type="button">Start Simulation</button>
+          <button id="stopSimulationBtn" type="button">Stop Simulation</button>
+        </div>
+        <form id="thresholdsForm" class="stack">
+          <label>Low Max</label>
+          <input id="lowMax" type="number" min="0" max="1" step="0.01" required />
+          <label>Medium Max</label>
+          <input id="mediumMax" type="number" min="0" max="1" step="0.01" required />
+          <button type="submit">Update Thresholds</button>
+        </form>
+        <p id="simulationStateText" class="hint">Simulation state: unknown</p>
+        <div id="adminStatus" class="status">No admin actions yet.</div>
+      </section>
+
+      <section class="card wide">
+        <h2>Live Stream Payload</h2>
+        <pre id="streamOutput" class="output">No stream payload received yet.</pre>
+      </section>
     </main>
 
-    <footer>
-      <p>EnergyPredict simulator portal | Static Web App HTTPS + AKS API</p>
-    </footer>
+    <footer><p>EnergyPredict simulator portal | Static Web App HTTPS + AKS API</p></footer>
 
     <script src="./config.js"></script>
     <script type="module" src="./src/app.js"></script>

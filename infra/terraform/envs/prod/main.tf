@@ -40,5 +40,18 @@ module "platform" {
   postgresql_storage_mb                  = var.postgresql_storage_mb
   postgresql_version                     = var.postgresql_version
   postgresql_public_access_enabled       = var.postgresql_public_access_enabled
+  enable_eventhub_streaming              = var.enable_eventhub_streaming
+  eventhub_namespace_name                = var.eventhub_namespace_name
+  eventhub_namespace_sku                 = var.eventhub_namespace_sku
+  eventhub_namespace_capacity            = var.eventhub_namespace_capacity
+  eventhub_name                          = var.eventhub_name
+  eventhub_partition_count               = var.eventhub_partition_count
+  eventhub_message_retention_days        = var.eventhub_message_retention_days
+  eventhub_consumer_group                = var.eventhub_consumer_group
+  stream_ingestion_enabled               = var.stream_ingestion_enabled
+  prediction_loop_interval_seconds       = var.prediction_loop_interval_seconds
+  llm_provider                           = var.llm_provider
+  llm_model                              = var.llm_model
+  llm_endpoint                           = var.llm_endpoint
   tags                                   = var.tags
 }

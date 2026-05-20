@@ -2,15 +2,19 @@
 
 import pandas as pd
 
+from app.core.config import get_settings
 from app.ml.features import build_features
 from app.ml.registry import load_current_model
 from app.schemas.prediction import PredictionRequest
 
 
-def risk_level_from_probability(probability: float) -> str:
-    if probability < 0.35:
+def risk_level_from_probability(probability: float, low_max: float | None = None, medium_max: float | None = None) -> str:
+    settings = get_settings()
+    low_max = settings.risk_threshold_low_max_default if low_max is None else low_max
+    medium_max = settings.risk_threshold_medium_max_default if medium_max is None else medium_max
+    if probability < low_max:
         return "low"
-    if probability < 0.70:
+    if probability < medium_max:
         return "medium"
     return "high"
 
@@ -21,15 +25,18 @@ def _as_request(payload: PredictionRequest | dict) -> PredictionRequest:
     return PredictionRequest(**payload)
 
 
-def predict_failure_risk(payload: PredictionRequest | dict) -> dict:
+def predict_failure_risk(payload: PredictionRequest | dict, low_max: float | None = None, medium_max: float | None = None) -> dict:
     payload = _as_request(payload)
+    settings = get_settings()
+    low_max = settings.risk_threshold_low_max_default if low_max is None else low_max
+    medium_max = settings.risk_threshold_medium_max_default if medium_max is None else medium_max
     model_probability = _predict_with_active_model(payload)
     if model_probability is not None:
         probability = model_probability
     else:
         probability = _heuristic_probability(payload)
 
-    risk_level = risk_level_from_probability(probability)
+    risk_level = risk_level_from_probability(probability, low_max=low_max, medium_max=medium_max)
 
     if risk_level == "low":
         recommendation = "Keep normal maintenance schedule."

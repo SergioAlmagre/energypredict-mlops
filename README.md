@@ -118,6 +118,9 @@ kubectl get ingress -n energypredict-prod
 kubectl rollout status deploy/energypredict-api-prod -n energypredict-prod
 ```
 
+For the full HTTPS operational guide (AKS ingress, cert-manager, ACME challenge troubleshooting, NSG/LB checks and frontend HTTPS wiring), see:
+- `docs/16_HTTPS_INGRESS_CERT_MANAGER_RUNBOOK.md`
+
 ## API key endpoints
 - `GET /api/v1/health/live`
 - `GET /api/v1/health/ready`
@@ -140,6 +143,9 @@ Para apagar todo el laboratorio:
 - `docs/09_FRONTEND_STATIC_SIMULATOR.md`
 - `docs/14_SECURITY_HARDENING_PLAN.md`
 - `docs/15_AKS_WORKLOAD_IDENTITY_KEYVAULT_CSI.md`
+- `docs/16_HTTPS_INGRESS_CERT_MANAGER_RUNBOOK.md`
+- `docs/17_STREAMING_PREDICTIONS_LLM_DATABRICKS_IMPLEMENTATION_PLAN.md`
+- `docs/18_STREAMING_EVENTHUB_DATABRICKS_RUNBOOK.md`
 - `CONTRIBUTING.md`
 - `SECURITY.md`
 - `CODE_OF_CONDUCT.md`
@@ -251,6 +257,25 @@ Frontend:
 - `FRONTEND_PROD_API_BASE_URL`
 - `FRONTEND_API_SCHEME_PROD` (recomendado: `https`)
 - `LETSENCRYPT_EMAIL`
+
+Streaming + LLM:
+- `STREAM_INGESTION_ENABLED_DEV`
+- `STREAM_INGESTION_ENABLED_PROD`
+- `PREDICTION_LOOP_INTERVAL_SECONDS`
+- `EVENTHUB_NAMESPACE_NAME_DEV`
+- `EVENTHUB_NAMESPACE_NAME_PROD`
+- `EVENTHUB_NAME_DEV`
+- `EVENTHUB_NAME_PROD`
+- `EVENTHUB_CONSUMER_GROUP`
+- `LLM_PROVIDER`
+- `LLM_MODEL`
+- `LLM_ENDPOINT`
+- `LLM_API_KEY` (secret)
+
+Groq recommended values:
+- `LLM_PROVIDER=groq`
+- `LLM_MODEL=llama-3.1-70b-versatile`
+- `LLM_ENDPOINT=https://api.groq.com/openai/v1/chat/completions`
 
 Terraform remote state:
 - `TF_STATE_RESOURCE_GROUP`

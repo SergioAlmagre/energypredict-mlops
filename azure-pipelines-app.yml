@@ -120,6 +120,63 @@ stages:
                         kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
                       }
 
+                      run_smoke_tests() {
+                        local ns="$1"
+                        local service_name="$2"
+                        local local_port="$3"
+
+                        local pf_pid=""
+                        cleanup_pf() {
+                          if [ -n "${pf_pid}" ]; then
+                            kill "${pf_pid}" >/dev/null 2>&1 || true
+                            wait "${pf_pid}" >/dev/null 2>&1 || true
+                          fi
+                        }
+                        trap cleanup_pf RETURN
+
+                        kubectl -n "${ns}" port-forward "svc/${service_name}" "${local_port}:80" >/tmp/pf-${ns}.log 2>&1 &
+                        pf_pid=$!
+                        sleep 4
+                        if ! kill -0 "${pf_pid}" >/dev/null 2>&1; then
+                          echo "ERROR: port-forward failed for ${ns}/${service_name}"
+                          cat /tmp/pf-${ns}.log || true
+                          return 1
+                        fi
+
+                        local api_base="http://127.0.0.1:${local_port}/api/v1"
+                        local smoke_email="smoke.admin.${ns}@energypredict.local"
+                        local smoke_password="SmokePass!123"
+
+                        curl -fsS "${api_base}/health/live" >/dev/null
+                        curl -fsS "${api_base}/health/ready" >/dev/null
+
+                        curl -sS -o /tmp/smoke-register-${ns}.json -w "%{http_code}" \
+                          -X POST "${api_base}/auth/register" \
+                          -H "Content-Type: application/json" \
+                          -d "{\"email\":\"${smoke_email}\",\"password\":\"${smoke_password}\",\"role\":\"admin\"}" | grep -Eq "^(200|201|400|409)$"
+
+                        curl -fsS -o /tmp/smoke-login-${ns}.json \
+                          -X POST "${api_base}/auth/login" \
+                          -H "Content-Type: application/x-www-form-urlencoded" \
+                          --data-urlencode "username=${smoke_email}" \
+                          --data-urlencode "password=${smoke_password}"
+
+                        local token
+                        token="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("access_token",""))' "/tmp/smoke-login-${ns}.json")"
+                        if [ -z "${token}" ]; then
+                          echo "ERROR: smoke login did not return access_token"
+                          cat /tmp/smoke-login-${ns}.json || true
+                          return 1
+                        fi
+
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/admin/risk-thresholds" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/admin/simulation/status" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/stream/latest?limit=5" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/alerts/active?limit=5" >/dev/null
+
+                        echo "Smoke tests passed for namespace ${ns}"
+                      }
+
                       DEV_UAMI_ID="$(az identity list --query "[?clientId=='$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)'] | [0].id" -o tsv)"
                       if [ -z "${DEV_UAMI_ID}" ]; then
                         echo "ERROR: AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV ($(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)) not found in this subscription/tenant."
@@ -138,12 +195,28 @@ stages:
                         echo "WARNING: Public endpoint preparation failed in dev. Continuing backend rollout."
                       fi
                       kubectl set image deployment/energypredict-api-dev api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-dev
-                      kubectl set env deployment/energypredict-api-dev CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_DEV) -n energypredict-dev
+                      DEV_EVENTHUB_FQ_NAMESPACE=""
+                      if [ -n "${EVENTHUB_NAMESPACE_NAME_DEV:-}" ]; then
+                        DEV_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_DEV}.servicebus.windows.net"
+                      fi
+                      kubectl set env deployment/energypredict-api-dev \
+                        CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_DEV) \
+                        STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_DEV:-false}" \
+                        PREDICTION_LOOP_INTERVAL_SECONDS="${PREDICTION_LOOP_INTERVAL_SECONDS:-10}" \
+                        EVENTHUB_NAME="${EVENTHUB_NAME_DEV:-}" \
+                        EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
+                        EVENTHUB_FQ_NAMESPACE=${DEV_EVENTHUB_FQ_NAMESPACE} \
+                        LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
+                        LLM_MODEL="${LLM_MODEL:-}" \
+                        LLM_ENDPOINT="${LLM_ENDPOINT:-}" \
+                        LLM_API_KEY="${LLM_API_KEY:-}" \
+                        -n energypredict-dev
                       echo "Public API endpoint (dev): ${PUBLIC_API_BASE_URL:-not-set}"
                       if ! kubectl rollout status deployment/energypredict-api-dev -n energypredict-dev --timeout=300s; then
                         debug_rollout "energypredict-dev" "energypredict-api-dev"
                         exit 1
                       fi
+                      run_smoke_tests "energypredict-dev" "energypredict-api-dev" "18080"
 
   - stage: Deploy_Prod
     displayName: Deploy Prod
@@ -185,6 +258,63 @@ stages:
                         kubectl get events -n "$ns" --sort-by=.metadata.creationTimestamp | tail -n 40 || true
                       }
 
+                      run_smoke_tests() {
+                        local ns="$1"
+                        local service_name="$2"
+                        local local_port="$3"
+
+                        local pf_pid=""
+                        cleanup_pf() {
+                          if [ -n "${pf_pid}" ]; then
+                            kill "${pf_pid}" >/dev/null 2>&1 || true
+                            wait "${pf_pid}" >/dev/null 2>&1 || true
+                          fi
+                        }
+                        trap cleanup_pf RETURN
+
+                        kubectl -n "${ns}" port-forward "svc/${service_name}" "${local_port}:80" >/tmp/pf-${ns}.log 2>&1 &
+                        pf_pid=$!
+                        sleep 4
+                        if ! kill -0 "${pf_pid}" >/dev/null 2>&1; then
+                          echo "ERROR: port-forward failed for ${ns}/${service_name}"
+                          cat /tmp/pf-${ns}.log || true
+                          return 1
+                        fi
+
+                        local api_base="http://127.0.0.1:${local_port}/api/v1"
+                        local smoke_email="smoke.admin.${ns}@energypredict.local"
+                        local smoke_password="SmokePass!123"
+
+                        curl -fsS "${api_base}/health/live" >/dev/null
+                        curl -fsS "${api_base}/health/ready" >/dev/null
+
+                        curl -sS -o /tmp/smoke-register-${ns}.json -w "%{http_code}" \
+                          -X POST "${api_base}/auth/register" \
+                          -H "Content-Type: application/json" \
+                          -d "{\"email\":\"${smoke_email}\",\"password\":\"${smoke_password}\",\"role\":\"admin\"}" | grep -Eq "^(200|201|400|409)$"
+
+                        curl -fsS -o /tmp/smoke-login-${ns}.json \
+                          -X POST "${api_base}/auth/login" \
+                          -H "Content-Type: application/x-www-form-urlencoded" \
+                          --data-urlencode "username=${smoke_email}" \
+                          --data-urlencode "password=${smoke_password}"
+
+                        local token
+                        token="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("access_token",""))' "/tmp/smoke-login-${ns}.json")"
+                        if [ -z "${token}" ]; then
+                          echo "ERROR: smoke login did not return access_token"
+                          cat /tmp/smoke-login-${ns}.json || true
+                          return 1
+                        fi
+
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/admin/risk-thresholds" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/admin/simulation/status" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/stream/latest?limit=5" >/dev/null
+                        curl -fsS -H "Authorization: Bearer ${token}" "${api_base}/alerts/active?limit=5" >/dev/null
+
+                        echo "Smoke tests passed for namespace ${ns}"
+                      }
+
                       PROD_UAMI_ID="$(az identity list --query "[?clientId=='$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)'] | [0].id" -o tsv)"
                       if [ -z "${PROD_UAMI_ID}" ]; then
                         echo "ERROR: AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD ($(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)) not found in this subscription/tenant."
@@ -201,9 +331,25 @@ stages:
                       kubectl apply -k k8s/overlays/prod
                       ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' bash scripts/prepare_public_api_endpoint.sh prod
                       kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
-                      kubectl set env deployment/energypredict-api-prod CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) -n energypredict-prod
+                      PROD_EVENTHUB_FQ_NAMESPACE=""
+                      if [ -n "${EVENTHUB_NAMESPACE_NAME_PROD:-}" ]; then
+                        PROD_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_PROD}.servicebus.windows.net"
+                      fi
+                      kubectl set env deployment/energypredict-api-prod \
+                        CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) \
+                        STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_PROD:-false}" \
+                        PREDICTION_LOOP_INTERVAL_SECONDS="${PREDICTION_LOOP_INTERVAL_SECONDS:-10}" \
+                        EVENTHUB_NAME="${EVENTHUB_NAME_PROD:-}" \
+                        EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
+                        EVENTHUB_FQ_NAMESPACE=${PROD_EVENTHUB_FQ_NAMESPACE} \
+                        LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
+                        LLM_MODEL="${LLM_MODEL:-}" \
+                        LLM_ENDPOINT="${LLM_ENDPOINT:-}" \
+                        LLM_API_KEY="${LLM_API_KEY:-}" \
+                        -n energypredict-prod
                       echo "Public API endpoint (prod): ${PUBLIC_API_BASE_URL:-not-set}"
                       if ! kubectl rollout status deployment/energypredict-api-prod -n energypredict-prod --timeout=420s; then
                         debug_rollout "energypredict-prod" "energypredict-api-prod"
                         exit 1
                       fi
+                      run_smoke_tests "energypredict-prod" "energypredict-api-prod" "18081"

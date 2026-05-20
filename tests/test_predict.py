@@ -22,6 +22,7 @@ def test_predict_with_auth_success(client, consumer_headers):
     assert data["risk_level"] in ["low", "medium", "high"]
     assert 0 <= data["failure_probability"] <= 1
     assert "model_version" in data
+    assert isinstance(data["recommendation"], str) and data["recommendation"]
 
 
 def test_predict_validation_pydantic_422(client, consumer_headers):
