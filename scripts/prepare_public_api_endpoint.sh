@@ -19,10 +19,12 @@ if [[ "$ENVIRONMENT" == "prod" ]]; then
   HOST_PREFIX="${HOST_PREFIX:-api}"
   ACME_SERVER="${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/directory}"
   CLUSTER_ISSUER_NAME="${CLUSTER_ISSUER_NAME:-letsencrypt-prod}"
+  INGRESS_NGINX_REPLICA_COUNT="${INGRESS_NGINX_REPLICA_COUNT:-2}"
 else
   HOST_PREFIX="${HOST_PREFIX:-api-dev}"
   ACME_SERVER="${ACME_SERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
   CLUSTER_ISSUER_NAME="${CLUSTER_ISSUER_NAME:-letsencrypt-staging}"
+  INGRESS_NGINX_REPLICA_COUNT="${INGRESS_NGINX_REPLICA_COUNT:-1}"
 fi
 
 echo "Ensuring ingress-nginx controller is installed..."
@@ -39,7 +41,7 @@ for attempt in 1 2 3; do
     --set controller.ingressClassResource.name="${INGRESS_CLASS}" \
     --set controller.ingressClassResource.controllerValue="k8s.io/ingress-nginx" \
     --set controller.service.type=LoadBalancer \
-    --set controller.replicaCount=2 \
+    --set controller.replicaCount="${INGRESS_NGINX_REPLICA_COUNT}" \
     --timeout 15m; then
     break
   fi
@@ -52,6 +54,10 @@ for attempt in 1 2 3; do
     exit 1
   fi
 done
+
+echo "ingress-nginx replicaCount target: ${INGRESS_NGINX_REPLICA_COUNT}"
+kubectl -n ingress-nginx get deploy ingress-nginx-controller -o wide || true
+kubectl -n ingress-nginx get pods -o wide || true
 
 echo "Waiting for ingress-nginx controller to be ready..."
 kubectl -n ingress-nginx rollout status deployment/ingress-nginx-controller --timeout=10m
