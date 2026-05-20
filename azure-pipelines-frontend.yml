@@ -163,7 +163,7 @@ stages:
 
                       API_HOST="$(kubectl -n energypredict-prod get ingress energypredict-api-prod -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || true)"
                       if [ -n "${API_HOST}" ]; then
-                        API_SCHEME="${FRONTEND_API_SCHEME_PROD:-http}"
+                        API_SCHEME="${FRONTEND_API_SCHEME_PROD:-https}"
                         API_BASE_URL="${API_SCHEME}://${API_HOST}/api/v1"
                       fi
                       if [ -z "${API_BASE_URL}" ]; then
