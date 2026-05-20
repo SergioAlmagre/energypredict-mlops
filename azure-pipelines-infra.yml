@@ -101,6 +101,14 @@ stages:
                   echo "$TFVARS_DEV_B64" | base64 -d > terraform.tfvars
                 fi
                 test -f terraform.tfvars || { echo "Missing infra/terraform/envs/dev/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
+                KV_NAME="$(grep -E '^[[:space:]]*key_vault_name[[:space:]]*=' terraform.tfvars | head -1 | sed -E 's/.*=[[:space:]]*"([^"]+)".*/\1/')"
+                if [ -n "${KV_NAME}" ]; then
+                  KV_PURGE="$(az keyvault show --name "${KV_NAME}" --query 'properties.enablePurgeProtection' -o tsv 2>/dev/null || true)"
+                  if [ "${KV_PURGE}" = "true" ] && grep -Eq '^[[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*false[[:space:]]*$' terraform.tfvars; then
+                    echo "Key Vault ${KV_NAME} already has purge protection enabled. Forcing terraform.tfvars value to true for this run."
+                    sed -i -E 's/^([[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*)false([[:space:]]*)$/\1true\2/' terraform.tfvars
+                  fi
+                fi
                 ACCOUNT_KEY="$(az storage account keys list \
                   --resource-group "${TF_STATE_RESOURCE_GROUP}" \
                   --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
@@ -155,6 +163,14 @@ stages:
                         echo "$TFVARS_DEV_B64" | base64 -d > terraform.tfvars
                       fi
                       test -f terraform.tfvars || { echo "Missing infra/terraform/envs/dev/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
+                      KV_NAME="$(grep -E '^[[:space:]]*key_vault_name[[:space:]]*=' terraform.tfvars | head -1 | sed -E 's/.*=[[:space:]]*"([^"]+)".*/\1/')"
+                      if [ -n "${KV_NAME}" ]; then
+                        KV_PURGE="$(az keyvault show --name "${KV_NAME}" --query 'properties.enablePurgeProtection' -o tsv 2>/dev/null || true)"
+                        if [ "${KV_PURGE}" = "true" ] && grep -Eq '^[[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*false[[:space:]]*$' terraform.tfvars; then
+                          echo "Key Vault ${KV_NAME} already has purge protection enabled. Forcing terraform.tfvars value to true for this run."
+                          sed -i -E 's/^([[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*)false([[:space:]]*)$/\1true\2/' terraform.tfvars
+                        fi
+                      fi
                       ACCOUNT_KEY="$(az storage account keys list \
                         --resource-group "${TF_STATE_RESOURCE_GROUP}" \
                         --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
@@ -226,6 +242,14 @@ stages:
                   echo "$TFVARS_PROD_B64" | base64 -d > terraform.tfvars
                 fi
                 test -f terraform.tfvars || { echo "Missing infra/terraform/envs/prod/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
+                KV_NAME="$(grep -E '^[[:space:]]*key_vault_name[[:space:]]*=' terraform.tfvars | head -1 | sed -E 's/.*=[[:space:]]*"([^"]+)".*/\1/')"
+                if [ -n "${KV_NAME}" ]; then
+                  KV_PURGE="$(az keyvault show --name "${KV_NAME}" --query 'properties.enablePurgeProtection' -o tsv 2>/dev/null || true)"
+                  if [ "${KV_PURGE}" = "true" ] && grep -Eq '^[[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*false[[:space:]]*$' terraform.tfvars; then
+                    echo "Key Vault ${KV_NAME} already has purge protection enabled. Forcing terraform.tfvars value to true for this run."
+                    sed -i -E 's/^([[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*)false([[:space:]]*)$/\1true\2/' terraform.tfvars
+                  fi
+                fi
                 ACCOUNT_KEY="$(az storage account keys list \
                   --resource-group "${TF_STATE_RESOURCE_GROUP}" \
                   --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
@@ -281,6 +305,14 @@ stages:
                         echo "$TFVARS_PROD_B64" | base64 -d > terraform.tfvars
                       fi
                       test -f terraform.tfvars || { echo "Missing infra/terraform/envs/prod/terraform.tfvars in repo/agent. Add variables via secure method before running infra pipeline."; exit 1; }
+                      KV_NAME="$(grep -E '^[[:space:]]*key_vault_name[[:space:]]*=' terraform.tfvars | head -1 | sed -E 's/.*=[[:space:]]*"([^"]+)".*/\1/')"
+                      if [ -n "${KV_NAME}" ]; then
+                        KV_PURGE="$(az keyvault show --name "${KV_NAME}" --query 'properties.enablePurgeProtection' -o tsv 2>/dev/null || true)"
+                        if [ "${KV_PURGE}" = "true" ] && grep -Eq '^[[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*false[[:space:]]*$' terraform.tfvars; then
+                          echo "Key Vault ${KV_NAME} already has purge protection enabled. Forcing terraform.tfvars value to true for this run."
+                          sed -i -E 's/^([[:space:]]*key_vault_purge_protection_enabled[[:space:]]*=[[:space:]]*)false([[:space:]]*)$/\1true\2/' terraform.tfvars
+                        fi
+                      fi
                       ACCOUNT_KEY="$(az storage account keys list \
                         --resource-group "${TF_STATE_RESOURCE_GROUP}" \
                         --account-name "${TF_STATE_STORAGE_ACCOUNT}" \
