@@ -177,6 +177,21 @@ stages:
                         echo "Smoke tests passed for namespace ${ns}"
                       }
 
+                      debug_public_endpoint() {
+                        echo "===== Public endpoint diagnostics (prod) ====="
+                        kubectl -n ingress-nginx get deploy,pods,svc,endpoints -o wide || true
+                        kubectl -n ingress-nginx describe svc ingress-nginx-controller || true
+                        kubectl -n ingress-nginx get events --sort-by=.metadata.creationTimestamp | tail -n 40 || true
+
+                        kubectl -n energypredict-prod get ingress energypredict-api-prod -o wide || true
+                        kubectl -n energypredict-prod describe ingress energypredict-api-prod || true
+                        kubectl -n energypredict-prod get certificate,certificaterequest,order,challenge 2>/dev/null || true
+                        kubectl -n energypredict-prod get events --sort-by=.metadata.creationTimestamp | tail -n 60 || true
+
+                        kubectl -n cert-manager get pods -o wide 2>/dev/null || true
+                        kubectl -n cert-manager logs deploy/cert-manager --tail=120 2>/dev/null || true
+                      }
+
                       DEV_UAMI_ID="$(az identity list --query "[?clientId=='$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)'] | [0].id" -o tsv)"
                       if [ -z "${DEV_UAMI_ID}" ]; then
                         echo "ERROR: AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV ($(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)) not found in this subscription/tenant."
@@ -419,7 +434,16 @@ stages:
                         debug_rollout "energypredict-prod" "energypredict-api-prod"
                         exit 1
                       fi
-                      ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' bash scripts/prepare_public_api_endpoint.sh prod
+                      if [[ -z "${LETSENCRYPT_EMAIL:-}" ]]; then
+                        echo "ERROR: LETSENCRYPT_EMAIL is empty in pipeline variables."
+                        echo "Set LETSENCRYPT_EMAIL in Variable Group 'energypredict-shared'."
+                        exit 1
+                      fi
+                      if ! timeout 35m env ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' INGRESS_NGINX_REPLICA_COUNT="${INGRESS_NGINX_REPLICA_COUNT_PROD:-2}" bash scripts/prepare_public_api_endpoint.sh prod; then
+                        echo "ERROR: prepare_public_api_endpoint.sh failed or timed out in prod."
+                        debug_public_endpoint
+                        exit 1
+                      fi
                       kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
                       PROD_EVENTHUB_FQ_NAMESPACE=""
                       if [ -n "${EVENTHUB_NAMESPACE_NAME_PROD:-}" ]; then
