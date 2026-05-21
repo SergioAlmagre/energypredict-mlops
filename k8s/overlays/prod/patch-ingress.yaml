@@ -5,3 +5,12 @@ metadata:
 spec:
   rules:
     - host: api.energypredict.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: energypredict-api
+                port:
+                  number: 80

@@ -102,10 +102,39 @@ Evidencia del paso:
 - Pipeline frontend (detalle de job).
 ![Frontend deploy details](docs/media/details-front-deploy-pipeline_censurada.jpg)
 
-- Portal del simulador publicado.
-![Predictive simulator portal (UI)](docs/media/predictive-simulator-ui-no-data_censurada.jpg)
+- Pantalla de login independiente (acceso obligatorio antes del portal).
+![Frontend login page](docs/media/login-page.jpg)
 
-### 7. Observe full CI/CD flow
+- Portal autenticado con nueva distribucion (registro, salud, estado de riesgo y secciones operativas).
+![Predictive simulator portal (authenticated view)](docs/media/predictive-simulator-ui-no-data_censurada-1.jpg)
+
+- Vista complementaria del portal con foco en prediccion manual y controles admin.
+![Predictive simulator portal (manual prediction and admin area)](docs/media/predictive-simulator-ui-no-data_censurada-2.jpg)
+
+### 7. Frontend functional validation
+Validacion recomendada en este orden. Cada captura confirma un bloque funcional concreto.
+
+1. Health endpoints desde UI (`/health/live` y `/health/ready`).
+Resultado esperado: estado `ok/ready` en la salida JSON.
+![Check liveness and readiness](docs/media/check-liveness.jpg)
+
+2. Estado de integraciones (`/models/integrations/status`).
+Resultado esperado: respuesta del estado de conectores y modo de ejecucion.
+![Check integrations](docs/media/check-integrations.jpg)
+
+3. Panel de riesgo en vivo (probabilidad, nivel de riesgo y recomendacion).
+Resultado esperado: refresco periodico y barras de sensores actualizadas.
+![Live risk state panel](docs/media/live-risk-state.jpg)
+
+4. Prediccion manual con respuesta JSON de backend.
+Resultado esperado: `prediction_id`, `risk_level` y `failure_probability` presentes.
+![Manual prediction result](docs/media/predict-failure-risk.jpg)
+
+5. Controles admin para simulacion y ajuste de umbrales.
+Resultado esperado: cambio de estado de simulacion y actualizacion de thresholds.
+![Admin controls panel](docs/media/admin-controls.jpg)
+
+### 8. Observe full CI/CD flow
 Vista conjunta de ejecuciones en Azure DevOps:
 
 ![Pipelines running](docs/media/pipelines-running_censurada.jpg)
