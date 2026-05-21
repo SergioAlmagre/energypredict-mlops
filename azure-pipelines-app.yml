@@ -189,8 +189,53 @@ stages:
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_TENANT_ID|$(AZURE_TENANT_ID)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
+                      wait_for_cluster_api() {
+                        local fqdn="$1"
+                        local max_attempts="${2:-18}"
+                        local sleep_seconds="${3:-10}"
+                        local attempt=1
+                        while [ "${attempt}" -le "${max_attempts}" ]; do
+                          if kubectl version --request-timeout=15s >/dev/null 2>&1; then
+                            echo "AKS API reachable."
+                            return 0
+                          fi
+                          echo "Waiting for AKS API connectivity (${attempt}/${max_attempts})..."
+                          if [ -n "${fqdn}" ]; then
+                            getent hosts "${fqdn}" || true
+                          fi
+                          sleep "${sleep_seconds}"
+                          attempt=$((attempt + 1))
+                        done
+                        return 1
+                      }
+
+                      apply_overlay_with_retry() {
+                        local overlay="$1"
+                        local max_attempts="${2:-6}"
+                        local sleep_seconds="${3:-15}"
+                        local attempt=1
+                        while [ "${attempt}" -le "${max_attempts}" ]; do
+                          echo "Applying ${overlay} (${attempt}/${max_attempts})..."
+                          if kubectl apply --validate=false -k "${overlay}"; then
+                            return 0
+                          fi
+                          sleep "${sleep_seconds}"
+                          attempt=$((attempt + 1))
+                        done
+                        return 1
+                      }
+
                       az aks get-credentials --resource-group $(AKS_DEV_RESOURCE_GROUP) --name $(AKS_DEV_CLUSTER_NAME) --overwrite-existing
-                      kubectl apply -k k8s/overlays/dev
+                      DEV_AKS_FQDN="$(az aks show --resource-group $(AKS_DEV_RESOURCE_GROUP) --name $(AKS_DEV_CLUSTER_NAME) --query fqdn -o tsv 2>/dev/null || true)"
+                      if ! wait_for_cluster_api "${DEV_AKS_FQDN}" 18 10; then
+                        echo "ERROR: AKS API not reachable after retries (dev)."
+                        exit 1
+                      fi
+                      if ! apply_overlay_with_retry "k8s/overlays/dev" 6 15; then
+                        echo "ERROR: kubectl apply failed after retries (dev)."
+                        debug_rollout "energypredict-dev" "energypredict-api-dev"
+                        exit 1
+                      fi
                       if ! timeout 25m env ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' INGRESS_NGINX_REPLICA_COUNT="${INGRESS_NGINX_REPLICA_COUNT_DEV:-1}" bash scripts/prepare_public_api_endpoint.sh dev; then
                         echo "WARNING: Public endpoint preparation failed in dev. Continuing backend rollout."
                       fi
@@ -327,8 +372,53 @@ stages:
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_TENANT_ID|$(AZURE_TENANT_ID)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
+                      wait_for_cluster_api() {
+                        local fqdn="$1"
+                        local max_attempts="${2:-18}"
+                        local sleep_seconds="${3:-10}"
+                        local attempt=1
+                        while [ "${attempt}" -le "${max_attempts}" ]; do
+                          if kubectl version --request-timeout=15s >/dev/null 2>&1; then
+                            echo "AKS API reachable."
+                            return 0
+                          fi
+                          echo "Waiting for AKS API connectivity (${attempt}/${max_attempts})..."
+                          if [ -n "${fqdn}" ]; then
+                            getent hosts "${fqdn}" || true
+                          fi
+                          sleep "${sleep_seconds}"
+                          attempt=$((attempt + 1))
+                        done
+                        return 1
+                      }
+
+                      apply_overlay_with_retry() {
+                        local overlay="$1"
+                        local max_attempts="${2:-6}"
+                        local sleep_seconds="${3:-15}"
+                        local attempt=1
+                        while [ "${attempt}" -le "${max_attempts}" ]; do
+                          echo "Applying ${overlay} (${attempt}/${max_attempts})..."
+                          if kubectl apply --validate=false -k "${overlay}"; then
+                            return 0
+                          fi
+                          sleep "${sleep_seconds}"
+                          attempt=$((attempt + 1))
+                        done
+                        return 1
+                      }
+
                       az aks get-credentials --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --overwrite-existing
-                      kubectl apply -k k8s/overlays/prod
+                      PROD_AKS_FQDN="$(az aks show --resource-group $(AKS_PROD_RESOURCE_GROUP) --name $(AKS_PROD_CLUSTER_NAME) --query fqdn -o tsv 2>/dev/null || true)"
+                      if ! wait_for_cluster_api "${PROD_AKS_FQDN}" 18 10; then
+                        echo "ERROR: AKS API not reachable after retries (prod)."
+                        exit 1
+                      fi
+                      if ! apply_overlay_with_retry "k8s/overlays/prod" 6 15; then
+                        echo "ERROR: kubectl apply failed after retries (prod)."
+                        debug_rollout "energypredict-prod" "energypredict-api-prod"
+                        exit 1
+                      fi
                       ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' bash scripts/prepare_public_api_endpoint.sh prod
                       kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
                       PROD_EVENTHUB_FQ_NAMESPACE=""
