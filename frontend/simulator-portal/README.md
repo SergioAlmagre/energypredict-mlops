@@ -2,6 +2,13 @@
 
 Static frontend for validation/demo scenarios. It calls the FastAPI backend directly over HTTPS.
 
+## Access flow
+
+- `login.html`: dedicated authentication window.
+- `index.html`: protected operations portal.
+- If token is missing/invalid, `index.html` redirects to `login.html`.
+- User registration remains in the main portal.
+
 ## Live dashboard behavior
 
 The portal supports:

@@ -1,9 +1,22 @@
-﻿import { apiFetch } from "./api.js";
+import { apiFetch } from "./api.js";
 
 let accessToken = localStorage.getItem("energypredict.accessToken") || "";
 
 export function getAccessToken() {
   return accessToken;
+}
+
+export function setAccessToken(token) {
+  accessToken = token || "";
+  if (accessToken) {
+    localStorage.setItem("energypredict.accessToken", accessToken);
+    return;
+  }
+  localStorage.removeItem("energypredict.accessToken");
+}
+
+export function logout() {
+  setAccessToken("");
 }
 
 export async function login(email, password) {
@@ -16,8 +29,7 @@ export async function login(email, password) {
     },
   });
 
-  accessToken = payload.access_token;
-  localStorage.setItem("energypredict.accessToken", accessToken);
+  setAccessToken(payload.access_token);
   return payload;
 }
 

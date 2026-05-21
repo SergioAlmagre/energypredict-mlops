@@ -14,6 +14,10 @@
         <p class="subtitle">Live asset telemetry, risk trend, active alerts and admin simulation controls.</p>
       </div>
       <div class="env-panel">
+        <div class="session-actions">
+          <span id="authStatus" class="status">Validating session...</span>
+          <button id="logoutBtn" type="button">Logout</button>
+        </div>
         <label for="apiBaseUrl">API Base URL</label>
         <input id="apiBaseUrl" type="url" placeholder="https://api-dev.example.com/api/v1" />
         <button id="saveApiUrlBtn" type="button">Save</button>
@@ -22,16 +26,9 @@
     </header>
 
     <main class="layout">
-      <section id="adminSection" class="card">
-        <h2>Authentication</h2>
-        <form id="loginForm" class="stack">
-          <label>Email</label>
-          <input id="email" type="email" required />
-          <label>Password</label>
-          <input id="password" type="password" required />
-          <button type="submit">Login</button>
-        </form>
-        <hr class="divider" />
+      <section id="registerSection" class="card">
+        <h2>User Registration</h2>
+        <p class="hint">Create users from this protected console. Login lives in a separate page.</p>
         <form id="registerForm" class="stack">
           <h3>Create User</h3>
           <label>Email</label>
@@ -48,7 +45,6 @@
           <button type="submit">Register</button>
         </form>
         <div id="registerStatus" class="status">No user registration attempted yet.</div>
-        <div id="authStatus" class="status">Not authenticated.</div>
       </section>
 
       <section class="card">
@@ -106,7 +102,7 @@
         <ul id="alertsList" class="alerts-list"><li>No active alerts.</li></ul>
       </section>
 
-      <section class="card">
+      <section id="adminSection" class="card">
         <h2>Admin Controls</h2>
         <div class="controls">
           <button id="startSimulationBtn" type="button">Start Simulation</button>

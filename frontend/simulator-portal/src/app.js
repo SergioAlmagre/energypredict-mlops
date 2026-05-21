@@ -1,4 +1,4 @@
-import { login, me, register } from "./auth.js";
+import { logout, me, register } from "./auth.js";
 import { appConfig, setApiBaseUrl, setOutput, setStatus } from "./config.js";
 import {
   checkHealth,
@@ -16,6 +16,23 @@ import {
 let pollingHandle;
 let currentUserRole = "anonymous";
 
+function redirectToLogin() {
+  window.location.href = "./login.html";
+}
+
+async function ensureAuthenticatedSession() {
+  try {
+    const profile = await me();
+    currentUserRole = profile.role || "unknown";
+    setStatus("authStatus", `Authenticated as ${profile.email} (${profile.role})`, "ok");
+    return profile;
+  } catch {
+    logout();
+    redirectToLogin();
+    throw new Error("Not authenticated");
+  }
+}
+
 function bindApiBaseUrlForm() {
   const input = document.getElementById("apiBaseUrl");
   const saveBtn = document.getElementById("saveApiUrlBtn");
@@ -24,29 +41,15 @@ function bindApiBaseUrlForm() {
   saveBtn.addEventListener("click", () => {
     if (!input.value) return;
     setApiBaseUrl(input.value.trim());
-    setStatus("authStatus", `API base URL updated to ${input.value.trim()}`);
+    setStatus("authStatus", `API base URL updated to ${input.value.trim()}`, "ok");
   });
 }
 
-function bindAuthForm() {
-  const form = document.getElementById("loginForm");
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    try {
-      await login(email, password);
-      const profile = await me();
-      currentUserRole = profile.role || "unknown";
-      setStatus("authStatus", `Authenticated as ${profile.email} (${profile.role})`, "ok");
-      applyAdminVisibility();
-      startLivePolling();
-      await refreshThresholds();
-      await refreshSimulationStatus();
-    } catch (error) {
-      setStatus("authStatus", `Authentication failed: ${error.message}`, "error");
-    }
+function bindLogoutAction() {
+  const btn = document.getElementById("logoutBtn");
+  btn.addEventListener("click", () => {
+    logout();
+    redirectToLogin();
   });
 }
 
@@ -61,8 +64,7 @@ function bindRegisterForm() {
     try {
       await register(email, password, role);
       setStatus("registerStatus", `User ${email} created with role ${role}.`, "ok");
-      document.getElementById("email").value = email;
-      document.getElementById("password").value = password;
+      form.reset();
     } catch (error) {
       setStatus("registerStatus", `Registration failed: ${error.message}`, "error");
     }
@@ -256,18 +258,25 @@ function startLivePolling() {
   pollingHandle = setInterval(pollLiveData, pollMs);
 }
 
-function bootstrap() {
+function bindUiHandlers() {
   bindApiBaseUrlForm();
-  bindAuthForm();
+  bindLogoutAction();
   bindRegisterForm();
   bindHealthActions();
   bindPredictionForm();
   bindAdminActions();
-  applyAdminVisibility();
+}
+
+async function bootstrap() {
+  bindUiHandlers();
   document.getElementById("simulationStateText").textContent = "Simulation state: unknown";
-  setStatus("authStatus", `Environment: ${appConfig.environment}. Not authenticated.`);
-  setStatus("registerStatus", "Register a user before first login.");
-  setStatus("liveStatus", "Live polling is idle until login.");
+  setStatus("registerStatus", "Create users from this console.");
+  setStatus("liveStatus", "Preparing live polling...");
+  await ensureAuthenticatedSession();
+  applyAdminVisibility();
+  startLivePolling();
+  await refreshThresholds();
+  await refreshSimulationStatus();
 }
 
 bootstrap();

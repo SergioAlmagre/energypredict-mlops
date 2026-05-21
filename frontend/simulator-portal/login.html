@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EnergyPredict Login</title>
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <main class="auth-layout">
+      <section class="auth-card">
+        <p class="badge">EnergyPredict Access</p>
+        <h1>Sign In</h1>
+        <p class="subtitle">Authenticate to enter the operations portal.</p>
+        <form id="loginForm" class="stack">
+          <label>Email</label>
+          <input id="email" type="email" required />
+          <label>Password</label>
+          <input id="password" type="password" required />
+          <button type="submit">Login</button>
+        </form>
+        <div id="loginStatus" class="status">Enter credentials to continue.</div>
+      </section>
+
+      <section class="auth-card env">
+        <h2>Connection</h2>
+        <label for="apiBaseUrl">API Base URL</label>
+        <input id="apiBaseUrl" type="url" placeholder="https://api-dev.example.com/api/v1" />
+        <button id="saveApiUrlBtn" type="button">Save URL</button>
+        <p class="hint">Environment config is loaded from config.js and can be overridden here.</p>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script type="module" src="./src/login.js"></script>
+  </body>
+</html>
