@@ -144,7 +144,7 @@ stages:
                         fi
 
                         local api_base="http://127.0.0.1:${local_port}/api/v1"
-                        local smoke_email="smoke.admin.${ns}@energypredict.local"
+                        local smoke_email="smoke.admin.${ns}@energypredictapp.com"
                         local smoke_password="SmokePass!123"
 
                         curl -fsS "${api_base}/health/live" >/dev/null
@@ -342,7 +342,7 @@ stages:
                         fi
 
                         local api_base="http://127.0.0.1:${local_port}/api/v1"
-                        local smoke_email="smoke.admin.${ns}@energypredict.local"
+                        local smoke_email="smoke.admin.${ns}@energypredictapp.com"
                         local smoke_password="SmokePass!123"
 
                         curl -fsS "${api_base}/health/live" >/dev/null
