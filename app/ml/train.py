@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.integrations.blob_storage import is_blob_configured, upload_file
 from app.integrations.mlflow_client import MLflowClient
 from app.integrations.snowflake_client import SnowflakeClient
+from app.ml.drift import build_feature_baseline
 from app.ml.features import split_features_target
 from app.ml.metrics import evaluate_classification
 from app.ml.registry import register_model as register_model_entry
@@ -86,21 +87,32 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
         )
 
         if register_model:
+            f1_score = float(metrics.get("f1_score", 0.0))
+            stage = "production" if f1_score >= settings.auto_promote_min_f1_score else "candidate"
             metadata = {
                 "model_id": model_id,
                 "name": model_name,
                 "version": model_version,
-                "stage": "production",
+                "stage": stage,
                 "algorithm": algorithm,
                 "artifact_uri": published_artifact_uri,
+                "feature_baseline": build_feature_baseline(X),
                 "mlflow_run_id": mlflow_run_id,
                 "mlflow_registry_uri": mlflow_client.registry_uri,
                 "mlflow_registered_model_name": mlflow_client.registered_model_name
                 if mlflow_client.register_model
                 else None,
+                "mlflow_registered_model_version": mlflow_client.last_registered_model_version
+                if mlflow_client.register_model
+                else None,
                 "metrics": metrics,
                 "created_at": _utc_now_iso(),
-                "promoted_at": _utc_now_iso(),
+                "promoted_at": _utc_now_iso() if stage == "production" else None,
+                "promotion_reason": (
+                    f"Auto-promoted: f1_score={f1_score:.4f} >= threshold={settings.auto_promote_min_f1_score:.4f}"
+                    if stage == "production"
+                    else f"Candidate only: f1_score={f1_score:.4f} < threshold={settings.auto_promote_min_f1_score:.4f}"
+                ),
             }
             register_model_entry(metadata)
 
@@ -125,6 +137,7 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 "artifact_uri": published_artifact_uri,
                 "algorithm": algorithm,
                 "registered": register_model,
+                "stage": stage if register_model else None,
             },
         }
     except Exception as exc:

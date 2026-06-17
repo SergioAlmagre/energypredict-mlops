@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from app.ml.registry import get_current_model_metadata, list_training_runs_data, promote_model
+from app.ml.registry import list_drift_reports_data
 from app.ml.train import train_model
 
 
@@ -26,6 +27,10 @@ def get_current_model() -> Dict[str, Any]:
 
 def list_training_runs() -> list[Dict[str, Any]]:
     return list_training_runs_data()
+
+
+def list_drift_reports() -> list[Dict[str, Any]]:
+    return list_drift_reports_data()
 
 
 def promote_model_to_production(model_id: str) -> Dict[str, Any]:

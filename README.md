@@ -8,6 +8,9 @@ EnergyPredict es una API de mantenimiento predictivo industrial con FastAPI, des
 - Despliegue en AKS con `k8s/base` + overlays `dev/prod`.
 - Secretos en Key Vault y consumo desde Kubernetes.
 - Entrenamiento cloud desacoplado mediante Kubernetes Jobs.
+- Drift monitoring batch con Kubernetes CronJob y retraining trigger configurable.
+- Predicciones automáticas vía Event Hub + data-processor; `/predict` queda como fallback/demo manual.
+- Observabilidad Prometheus/Grafana con `/metrics`, ServiceMonitor, alert rules y dashboard.
 - Databricks MLflow/Unity Catalog para tracking y registro formal del modelo.
 - Azure Blob Storage para cache operativo de modelos, registry y datasets procesados.
 - Frontend estatico para demo funcional del simulador.
@@ -26,6 +29,8 @@ This repository demonstrates a production-oriented MLOps platform rather than a 
 - Azure DevOps CI/CD split by infrastructure, backend and frontend.
 - Terraform-managed Azure platform: AKS, ACR, Key Vault, Databricks, PostgreSQL, Static Web App and model storage.
 - MLOps flow with remote training Jobs, Blob-backed model artifacts, Databricks MLflow tracking and Unity Catalog model registration.
+- Batch data drift monitor with PSI-based thresholds, stored drift reports, optional alerts and optional retraining trigger.
+- Event-driven automatic inference through Event Hub/data-processor plus Prometheus/Grafana runtime observability.
 - Public docs and runbooks under `docs/`; private interview prep is intentionally ignored from the public repo.
 
 Generated model artifacts and local runtime registries are not committed. See `models/registry.example.json` for the registry shape.

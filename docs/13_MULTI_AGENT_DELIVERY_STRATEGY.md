@@ -19,6 +19,9 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
    - MLflow: fallback local para desarrollo y Databricks MLflow en cloud.
    - Databricks: launcher configurable para Kubernetes Jobs o Databricks Jobs API.
    - Snowflake/datasets: CSV local para desarrollo y lectura cloud configurable.
+   - Drift monitoring: baseline de training, reportes PSI y retraining trigger mediante CronJob.
+   - Prediccion automatica: Event Hub -> data-processor -> SensorEvent/Alert.
+   - Observabilidad: `/metrics`, ServiceMonitor, PrometheusRule y dashboard Grafana.
 
 ## Orden de integracion por fases
 1. Fase 0 - Contrato y baseline
@@ -34,7 +37,7 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
 4. Fase 3 - Integraciones productivas
    - Validar conectores reales con credenciales cloud y datos representativos.
    - Declarar objetos Databricks con Terraform si se exige IaC completo dentro del workspace.
-   - Promotion flow dev->prod con evidencia y rollback probado.
+   - Promotion flow dev->prod con evidencia, drift monitoring y rollback probado.
 
 ## Checklist de integracion por fase
 ### Fase 0
@@ -50,6 +53,9 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
 - Checklist OWASP API revisada.
 ### Fase 3
 - Conectores MLOps reales validados extremo a extremo.
+- CronJob de drift monitor validado con datos suficientes y umbrales documentados.
+- Data processor validado con Event Hub como fuente automatica de telemetria.
+- Prometheus/Grafana validado con kube-prometheus-stack instalado.
 - Evidencia de despliegue en dev y promocion a prod.
 - Runbooks actualizados con procedimiento de rollback.
 

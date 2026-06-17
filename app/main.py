@@ -17,6 +17,7 @@ from app.api.routes_models import router as models_router
 from app.api.routes_predictions import router as predictions_router
 from app.api.routes_stream import router as stream_router
 from app.core.config import get_settings
+from app.core.metrics import metrics_response, observe_http_request, should_skip_http_metrics
 from app.db.session import Base, SessionLocal, engine
 from app.services.risk_policy_service import get_or_create_active_policy
 from app.services.streaming_service import get_or_create_simulation_state
@@ -71,7 +72,7 @@ app.include_router(alerts_router, prefix=settings.api_v1_prefix)
 
 @app.on_event("startup")
 def startup_background_workers():
-    if settings.stream_ingestion_enabled:
+    if settings.api_simulation_worker_enabled:
         simulation_worker.start()
 
 
@@ -145,6 +146,13 @@ async def request_trace_logging_middleware(request: Request, call_next):
                 }
             )
         )
+        if not should_skip_http_metrics(request.url.path):
+            observe_http_request(request.method, route, status_code, started_at)
 
     response.headers["X-Trace-Id"] = trace_id
     return response
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics():
+    return metrics_response()

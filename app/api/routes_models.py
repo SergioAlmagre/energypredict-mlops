@@ -8,7 +8,14 @@ from app.db.session import get_db
 from app.integrations.databricks_client import DatabricksClient
 from app.integrations.mlflow_client import MLflowClient
 from app.integrations.snowflake_client import SnowflakeClient
-from app.ml.service import get_current_model, list_training_runs, promote_model_to_production, train_model_service
+from app.ml.drift import evaluate_data_drift
+from app.ml.service import (
+    get_current_model,
+    list_drift_reports,
+    list_training_runs,
+    promote_model_to_production,
+    train_model_service,
+)
 from app.schemas.prediction import TrainAndPromoteResponse, TrainModelRequest, TrainModelResponse
 from app.services.ml_orchestrator import MLOrchestrator
 
@@ -205,6 +212,43 @@ def get_runs(
     current_user: User = Depends(require_roles("ml_engineer", "admin")),
 ):
     return {"items": list_training_runs()}
+
+
+@router.post(
+    "/drift/evaluate",
+    summary="Evaluate production data drift",
+    description=(
+        "Compares recent production inference features against the current production model baseline. "
+        "When trigger_retraining is true, a retraining job is submitted only if drift exceeds the configured threshold."
+    ),
+    responses={
+        200: {"description": "Drift report generated."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can evaluate model drift."},
+    },
+)
+def evaluate_drift_endpoint(
+    trigger_retraining: bool = False,
+    window_hours: int | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("ml_engineer", "admin")),
+):
+    return evaluate_data_drift(db=db, window_hours=window_hours, trigger_retraining=trigger_retraining)
+
+
+@router.get(
+    "/drift/reports",
+    summary="List data drift reports",
+    responses={
+        200: {"description": "Stored drift reports."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can inspect drift reports."},
+    },
+)
+def get_drift_reports(
+    current_user: User = Depends(require_roles("ml_engineer", "admin")),
+):
+    return {"items": list_drift_reports()}
 
 
 @router.get("/runs/{run_id}")

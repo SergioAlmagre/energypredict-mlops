@@ -562,11 +562,11 @@ Roles: `admin`
 
 Archiva versiÃ³n.
 
-## MÃ©tricas opcionales
+## MÃ©tricas Prometheus
 
 ### `GET /metrics`
 
-Para Prometheus.
+Endpoint real fuera de `/api/v1` para scraping de Prometheus.
 
 Ejemplos:
 

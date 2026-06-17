@@ -20,7 +20,7 @@ def _now_iso() -> str:
 
 
 def _default_registry() -> Dict[str, Any]:
-    return {"models": [], "production_model_id": None, "training_runs": []}
+    return {"models": [], "production_model_id": None, "training_runs": [], "drift_reports": []}
 
 
 def load_registry() -> Dict[str, Any]:
@@ -45,6 +45,8 @@ def save_registry(registry: Dict[str, Any]) -> None:
 
 def register_model(metadata: Dict[str, Any]) -> Dict[str, Any]:
     registry = load_registry()
+    if metadata.get("stage") == "production":
+        metadata["mlflow_alias_sync"] = _sync_mlflow_production_alias(metadata)
     registry["models"].append(metadata)
     if metadata.get("stage") == "production":
         registry["production_model_id"] = metadata["model_id"]
@@ -75,6 +77,17 @@ def list_training_runs_data() -> List[Dict[str, Any]]:
 
 def list_models() -> List[Dict[str, Any]]:
     return load_registry().get("models", [])
+
+
+def register_drift_report(report: Dict[str, Any]) -> Dict[str, Any]:
+    registry = load_registry()
+    registry.setdefault("drift_reports", []).append(report)
+    save_registry(registry)
+    return report
+
+
+def list_drift_reports_data() -> List[Dict[str, Any]]:
+    return load_registry().get("drift_reports", [])
 
 
 def get_current_model_metadata() -> Dict[str, Any]:
@@ -117,6 +130,21 @@ def promote_model(model_id: str, target_stage: str = "production") -> Dict[str, 
 
     target_model["stage"] = "production"
     target_model["promoted_at"] = _now_iso()
+    target_model["mlflow_alias_sync"] = _sync_mlflow_production_alias(target_model)
     registry["production_model_id"] = model_id
     save_registry(registry)
     return target_model
+
+
+def _sync_mlflow_production_alias(model: Dict[str, Any]) -> Dict[str, Any]:
+    registered_model_name = model.get("mlflow_registered_model_name")
+    registered_model_version = model.get("mlflow_registered_model_version")
+    if not registered_model_name or not registered_model_version:
+        return {"status": "skipped", "reason": "Missing MLflow registered model name or version."}
+
+    from app.integrations.mlflow_client import MLflowClient
+
+    return MLflowClient().set_production_alias(
+        registered_model_name=registered_model_name,
+        registered_model_version=str(registered_model_version),
+    )

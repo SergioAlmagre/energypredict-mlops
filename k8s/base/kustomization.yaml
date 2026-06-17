@@ -13,3 +13,7 @@ resources:
   - training-rbac.yaml
   - data-processor.yaml
   - training-job.yaml
+  - drift-monitor-cronjob.yaml
+  - servicemonitor.yaml
+  - prometheus-rules.yaml
+  - grafana-dashboard.yaml

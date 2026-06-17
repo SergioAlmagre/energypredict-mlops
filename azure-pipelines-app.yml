@@ -276,6 +276,7 @@ stages:
                       kubectl set image deployment/energypredict-api-dev api="${API_IMAGE}" -n energypredict-dev
                       kubectl set image deployment/energypredict-data-processor-dev data-processor="${DATA_PROCESSOR_IMAGE}" -n energypredict-dev
                       kubectl set image job/energypredict-training-template-dev training="${TRAINING_IMAGE}" -n energypredict-dev || true
+                      kubectl set image cronjob/energypredict-drift-monitor-dev drift-monitor="${API_IMAGE}" -n energypredict-dev || true
                       DEV_EVENTHUB_FQ_NAMESPACE=""
                       if [ -n "${EVENTHUB_NAMESPACE_NAME_DEV:-}" ]; then
                         DEV_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_DEV}.servicebus.windows.net"
@@ -297,11 +298,23 @@ stages:
                         MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_DEV:-energypredict}" \
                         MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_DEV:-mlops}" \
                         MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_DEV:-energypredict.mlops.asset_failure_classifier}" \
+                        MLFLOW_SYNC_PRODUCTION_ALIAS="${MLFLOW_SYNC_PRODUCTION_ALIAS_DEV:-false}" \
+                        MLFLOW_PRODUCTION_ALIAS="${MLFLOW_PRODUCTION_ALIAS_DEV:-champion}" \
+                        STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_DEV:-false}" \
+                        API_SIMULATION_WORKER_ENABLED="${API_SIMULATION_WORKER_ENABLED_DEV:-false}" \
+                        DRIFT_MONITOR_WINDOW_HOURS="${DRIFT_MONITOR_WINDOW_HOURS_DEV:-24}" \
+                        DRIFT_MONITOR_MIN_SAMPLES="${DRIFT_MONITOR_MIN_SAMPLES_DEV:-30}" \
+                        DRIFT_PSI_WARNING_THRESHOLD="${DRIFT_PSI_WARNING_THRESHOLD_DEV:-0.10}" \
+                        DRIFT_PSI_RETRAIN_THRESHOLD="${DRIFT_PSI_RETRAIN_THRESHOLD_DEV:-0.25}" \
+                        DRIFT_RETRAINING_ENABLED="${DRIFT_RETRAINING_ENABLED_DEV:-false}" \
+                        DRIFT_RETRAINING_DATASET_URI="${DRIFT_RETRAINING_DATASET_URI_DEV:-azureblob://processed/latest/sensor_data.csv}" \
+                        DRIFT_ALERT_WEBHOOK_URL="${DRIFT_ALERT_WEBHOOK_URL_DEV:-}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         -n energypredict-dev
                       kubectl set env deployment/energypredict-api-dev \
                         CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_DEV) \
                         STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_DEV:-false}" \
+                        API_SIMULATION_WORKER_ENABLED="${API_SIMULATION_WORKER_ENABLED_DEV:-false}" \
                         PREDICTION_LOOP_INTERVAL_SECONDS="${PREDICTION_LOOP_INTERVAL_SECONDS:-10}" \
                         EVENTHUB_NAME="${EVENTHUB_NAME_DEV:-}" \
                         EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
@@ -517,6 +530,7 @@ stages:
                       kubectl set image deployment/energypredict-api-prod api="${API_IMAGE}" -n energypredict-prod
                       kubectl set image deployment/energypredict-data-processor-prod data-processor="${DATA_PROCESSOR_IMAGE}" -n energypredict-prod
                       kubectl set image job/energypredict-training-template-prod training="${TRAINING_IMAGE}" -n energypredict-prod || true
+                      kubectl set image cronjob/energypredict-drift-monitor-prod drift-monitor="${API_IMAGE}" -n energypredict-prod || true
                       PROD_EVENTHUB_FQ_NAMESPACE=""
                       if [ -n "${EVENTHUB_NAMESPACE_NAME_PROD:-}" ]; then
                         PROD_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_PROD}.servicebus.windows.net"
@@ -538,11 +552,23 @@ stages:
                         MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_PROD:-energypredict}" \
                         MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_PROD:-mlops}" \
                         MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_PROD:-energypredict.mlops.asset_failure_classifier}" \
+                        MLFLOW_SYNC_PRODUCTION_ALIAS="${MLFLOW_SYNC_PRODUCTION_ALIAS_PROD:-false}" \
+                        MLFLOW_PRODUCTION_ALIAS="${MLFLOW_PRODUCTION_ALIAS_PROD:-champion}" \
+                        STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_PROD:-false}" \
+                        API_SIMULATION_WORKER_ENABLED="${API_SIMULATION_WORKER_ENABLED_PROD:-false}" \
+                        DRIFT_MONITOR_WINDOW_HOURS="${DRIFT_MONITOR_WINDOW_HOURS_PROD:-24}" \
+                        DRIFT_MONITOR_MIN_SAMPLES="${DRIFT_MONITOR_MIN_SAMPLES_PROD:-30}" \
+                        DRIFT_PSI_WARNING_THRESHOLD="${DRIFT_PSI_WARNING_THRESHOLD_PROD:-0.10}" \
+                        DRIFT_PSI_RETRAIN_THRESHOLD="${DRIFT_PSI_RETRAIN_THRESHOLD_PROD:-0.25}" \
+                        DRIFT_RETRAINING_ENABLED="${DRIFT_RETRAINING_ENABLED_PROD:-false}" \
+                        DRIFT_RETRAINING_DATASET_URI="${DRIFT_RETRAINING_DATASET_URI_PROD:-azureblob://processed/latest/sensor_data.csv}" \
+                        DRIFT_ALERT_WEBHOOK_URL="${DRIFT_ALERT_WEBHOOK_URL_PROD:-}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         -n energypredict-prod
                       kubectl set env deployment/energypredict-api-prod \
                         CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) \
                         STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_PROD:-false}" \
+                        API_SIMULATION_WORKER_ENABLED="${API_SIMULATION_WORKER_ENABLED_PROD:-false}" \
                         PREDICTION_LOOP_INTERVAL_SECONDS="${PREDICTION_LOOP_INTERVAL_SECONDS:-10}" \
                         EVENTHUB_NAME="${EVENTHUB_NAME_PROD:-}" \
                         EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \

@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: energypredict-alerts
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: energypredict.rules
+      rules:
+        - alert: EnergyPredictHighErrorRate
+          expr: |
+            sum(rate(energypredict_http_requests_total{status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(energypredict_http_requests_total[5m])), 0.001)
+            > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: EnergyPredict API 5xx rate is above 5%
+        - alert: EnergyPredictHighDrift
+          expr: energypredict_drift_max_feature_psi >= 0.25
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: EnergyPredict model input drift exceeds retraining threshold
+        - alert: EnergyPredictNoPredictions
+          expr: sum(rate(energypredict_predictions_total[30m])) == 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: EnergyPredict has not produced predictions in the last 30 minutes

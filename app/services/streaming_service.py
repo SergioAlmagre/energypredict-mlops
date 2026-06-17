@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from app.core.metrics import observe_active_alerts, observe_prediction
 from app.db.models import Alert, SensorEvent, SimulationControlState
 from app.schemas.prediction import PredictionRequest
 from app.services.llm_explainer_service import build_operations_explanation
@@ -87,6 +88,8 @@ def ingest_telemetry_event(
     _upsert_alert_for_event(db=db, event=event)
     db.commit()
     db.refresh(event)
+    observe_prediction(source=source, risk_level=event.risk_level, model_version=model.version)
+    observe_active_alerts(_active_alert_counts(db))
     return event
 
 
@@ -144,3 +147,12 @@ def _upsert_alert_for_event(db: Session, event: SensorEvent) -> None:
             updated_at=now,
         )
     )
+
+
+def _active_alert_counts(db: Session) -> dict[str, int]:
+    counts = {"medium": 0, "high": 0}
+    active_alerts = db.query(Alert).filter(Alert.status == "active").all()
+    for alert in active_alerts:
+        if alert.severity in counts:
+            counts[alert.severity] += 1
+    return counts

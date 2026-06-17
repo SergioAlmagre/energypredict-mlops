@@ -1,6 +1,7 @@
 ﻿from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.metrics import observe_prediction
 from app.db.models import ModelVersion, Prediction, PredictionExplanation, User
 from app.ml.predict import predict_failure_risk
 from app.ml.service import get_current_model
@@ -69,6 +70,7 @@ def create_prediction(db: Session, payload: PredictionRequest, current_user: Use
     db.add(prediction)
     db.commit()
     db.refresh(prediction)
+    observe_prediction(source="api", risk_level=prediction.risk_level, model_version=model.version)
 
     persist_prediction_explanation(
         db=db,

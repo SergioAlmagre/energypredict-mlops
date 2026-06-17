@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     predict_rate_limit_window_seconds: int = 60
     ml_api_base_url: str = "http://localhost:8000/api/v1"
     auto_promote_min_f1_score: float = 0.80
+    drift_monitor_window_hours: int = 24
+    drift_monitor_min_samples: int = 30
+    drift_psi_warning_threshold: float = 0.10
+    drift_psi_retrain_threshold: float = 0.25
+    drift_retraining_enabled: bool = False
+    drift_retraining_dataset_uri: str = "azureblob://processed/latest/sensor_data.csv"
+    drift_alert_webhook_url: str | None = None
     risk_threshold_low_max_default: float = 0.35
     risk_threshold_medium_max_default: float = 0.70
     llm_provider: str = "disabled"
@@ -38,6 +45,7 @@ class Settings(BaseSettings):
     llm_circuit_breaker_failures: int = 5
     llm_circuit_breaker_reset_seconds: int = 120
     stream_ingestion_enabled: bool = False
+    api_simulation_worker_enabled: bool = False
     prediction_loop_interval_seconds: int = 10
     simulation_asset_codes: str = "PUMP-001,PUMP-002,TURBINE-001"
     eventhub_connection_string: str | None = None
@@ -61,6 +69,8 @@ class Settings(BaseSettings):
     mlflow_uc_catalog: str | None = None
     mlflow_uc_schema: str | None = None
     mlflow_registered_model_name: str | None = None
+    mlflow_sync_production_alias: bool = False
+    mlflow_production_alias: str = "champion"
     training_mode: Literal["local", "k8s_job", "databricks"] = "local"
     k8s_namespace: str = "energypredict-prod"
     k8s_training_job_image: str | None = None

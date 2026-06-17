@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: energypredict-grafana-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  energypredict-overview.json: |
+    {
+      "uid": "energypredict-overview",
+      "title": "EnergyPredict MLOps Overview",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "tags": ["energypredict", "mlops", "aks"],
+      "time": {"from": "now-6h", "to": "now"},
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "API request rate",
+          "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "sum by (route, status_code) (rate(energypredict_http_requests_total[5m]))",
+              "legendFormat": "{{route}} {{status_code}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "API p95 latency",
+          "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum by (le, route) (rate(energypredict_http_request_duration_seconds_bucket[5m])))",
+              "legendFormat": "{{route}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Predictions by risk level",
+          "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "sum by (risk_level, source) (rate(energypredict_predictions_total[5m]))",
+              "legendFormat": "{{source}} {{risk_level}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Active alerts",
+          "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "energypredict_active_alerts",
+              "legendFormat": "{{severity}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Data drift PSI",
+          "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "energypredict_drift_max_feature_psi",
+              "legendFormat": "max PSI {{model_version}}"
+            },
+            {
+              "expr": "energypredict_drift_global_psi",
+              "legendFormat": "global PSI {{model_version}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Training jobs triggered",
+          "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+          "targets": [
+            {
+              "expr": "sum by (source) (increase(energypredict_training_jobs_triggered_total[6h]))",
+              "legendFormat": "{{source}}"
+            }
+          ]
+        }
+      ]
+    }

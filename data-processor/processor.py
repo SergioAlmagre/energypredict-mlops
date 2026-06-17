@@ -11,6 +11,10 @@ from app.services.streaming_service import ingest_telemetry_event
 
 def main() -> None:
     settings = get_settings()
+    if not settings.stream_ingestion_enabled:
+        while True:
+            time.sleep(60)
+
     if not settings.eventhub_name or not (settings.eventhub_connection_string or settings.eventhub_fq_namespace):
         while True:
             time.sleep(60)
