@@ -7,6 +7,8 @@ from pathlib import Path
 import joblib
 from sklearn.ensemble import RandomForestClassifier
 
+from app.core.config import get_settings
+from app.integrations.blob_storage import is_blob_configured, upload_file
 from app.integrations.mlflow_client import MLflowClient
 from app.integrations.snowflake_client import SnowflakeClient
 from app.ml.features import split_features_target
@@ -24,6 +26,7 @@ def _utc_version() -> str:
 
 
 def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", register_model: bool = True):
+    settings = get_settings()
     run_id = str(uuid.uuid4())
     model_id = str(uuid.uuid4())
     model_name = "asset_failure_classifier"
@@ -58,13 +61,25 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
         artifacts_dir.mkdir(parents=True, exist_ok=True)
         artifact_uri = artifacts_dir / f"{model_name}_{model_version}.pkl"
         joblib.dump(model, artifact_uri)
+        published_artifact_uri = str(artifact_uri)
+        if settings.model_artifact_backend == "blob" and is_blob_configured():
+            published_artifact_uri = upload_file(
+                settings.blob_models_container,
+                f"{model_name}/{model_version}/model.pkl",
+                artifact_uri,
+            )
 
         mlflow_run_id = MLflowClient().log_training_run(
             run_name=f"{model_name}_{model_version}",
             parameters=run_payload["parameters"],
             metrics=metrics,
             artifact_uri=str(artifact_uri),
-            tags={"model_name": model_name, "model_version": model_version, "algorithm": algorithm},
+            tags={
+                "model_name": model_name,
+                "model_version": model_version,
+                "algorithm": algorithm,
+                "published_artifact_uri": published_artifact_uri,
+            },
         )
 
         if register_model:
@@ -74,7 +89,7 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 "version": model_version,
                 "stage": "production",
                 "algorithm": algorithm,
-                "artifact_uri": str(artifact_uri),
+                "artifact_uri": published_artifact_uri,
                 "metrics": metrics,
                 "created_at": _utc_now_iso(),
                 "promoted_at": _utc_now_iso(),
@@ -99,7 +114,7 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 "model_id": model_id,
                 "name": model_name,
                 "version": model_version,
-                "artifact_uri": str(artifact_uri),
+                "artifact_uri": published_artifact_uri,
                 "algorithm": algorithm,
                 "registered": register_model,
             },

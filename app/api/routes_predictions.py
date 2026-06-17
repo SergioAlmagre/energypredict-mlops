@@ -12,7 +12,20 @@ from app.services.prediction_service import create_prediction
 router = APIRouter(tags=["predictions"])
 
 
-@router.post("/predict", response_model=PredictionResponse, status_code=status.HTTP_200_OK)
+@router.post(
+    "/predict",
+    response_model=PredictionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Predict asset failure risk",
+    description="Runs online inference for a single industrial asset telemetry payload and persists the prediction.",
+    responses={
+        200: {"description": "Prediction generated and persisted."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Authenticated user does not have a role allowed to predict."},
+        422: {"description": "Invalid telemetry payload."},
+        429: {"description": "Rate limit exceeded."},
+    },
+)
 def predict(
     payload: PredictionRequest,
     request: Request,

@@ -18,6 +18,14 @@ node_vm_size                     = "Standard_D2s_v3"
 enable_databricks                = true
 databricks_workspace_name        = "dbw-<project>-dev"
 databricks_sku                   = "premium"
+enable_workload_identity         = true
+enable_key_vault_csi             = true
+kubernetes_namespace             = "energypredict-dev"
+workload_identity_service_account_name = "energypredict-api-dev"
+workload_identity_additional_service_account_names = [
+  "energypredict-training-dev",
+  "energypredict-data-processor-dev",
+]
 enable_postgresql                = true
 postgresql_server_name           = "pg-<project>-dev"
 postgresql_location              = "<azure-region>"
@@ -29,6 +37,12 @@ postgresql_storage_mb            = 32768
 postgresql_version               = "16"
 postgresql_public_access_enabled = true
 enable_eventhub_streaming        = true
+enable_model_storage             = true
+model_storage_account_name       = "stprojectdevmlops"
+model_storage_replication_type   = "LRS"
+blob_models_container            = "models"
+blob_registry_container          = "registry"
+blob_processed_container         = "processed"
 eventhub_namespace_name          = "evhns-<project>-dev"
 eventhub_namespace_sku           = "Standard"
 eventhub_namespace_capacity      = 1
@@ -43,9 +57,10 @@ llm_model                        = "llama-3.1-70b-versatile"
 llm_endpoint                     = "https://api.groq.com/openai/v1/chat/completions"
 
 key_vault_app_secrets = {
-  JWT_SECRET_KEY = "<jwt-secret>"
-  FERNET_KEY     = "<fernet-key>"
-  DATABASE_URL   = "<database-url>"
+  JWT_SECRET_KEY  = "<jwt-secret>"
+  FERNET_KEY      = "<fernet-key>"
+  DATABASE_URL    = "<database-url>"
+  DATABRICKS_TOKEN = "<databricks-pat-or-service-principal-token>"
 }
 
 tags = {

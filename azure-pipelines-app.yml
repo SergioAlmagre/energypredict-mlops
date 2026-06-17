@@ -15,6 +15,10 @@ pr:
 variables:
   - name: IMAGE_NAME
     value: energypredict-api
+  - name: TRAINING_IMAGE_NAME
+    value: energypredict-training
+  - name: DATA_PROCESSOR_IMAGE_NAME
+    value: energypredict-data-processor
   - group: energypredict-shared
 
 stages:
@@ -62,11 +66,14 @@ stages:
             displayName: Dependency audit (pip-audit, advisory)
             continueOnError: true
 
-          - script: docker build -t $(IMAGE_NAME):ci-$(Build.SourceVersion) .
-            displayName: Docker build (validation)
+          - script: |
+              docker build -t $(IMAGE_NAME):ci-$(Build.SourceVersion) .
+              docker build -f training-job/Dockerfile -t $(TRAINING_IMAGE_NAME):ci-$(Build.SourceVersion) .
+              docker build -f data-processor/Dockerfile -t $(DATA_PROCESSOR_IMAGE_NAME):ci-$(Build.SourceVersion) .
+            displayName: Docker build images (validation)
 
           - task: AzureCLI@2
-            displayName: Build and push image to ACR (single artifact)
+            displayName: Build and push images to ACR
             condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
             inputs:
               azureSubscription: $(AZURE_SERVICE_CONNECTION)
@@ -76,9 +83,16 @@ stages:
                 set -euo pipefail
                 az acr login --name $(ACR_NAME)
                 IMAGE_TAG=$(Build.SourceVersion)
-                FULL_IMAGE=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$IMAGE_TAG
-                docker build -t "$FULL_IMAGE" .
-                docker push "$FULL_IMAGE"
+                for item in \
+                  "$(IMAGE_NAME)|Dockerfile|." \
+                  "$(TRAINING_IMAGE_NAME)|training-job/Dockerfile|." \
+                  "$(DATA_PROCESSOR_IMAGE_NAME)|data-processor/Dockerfile|."
+                do
+                  IFS='|' read -r name dockerfile context <<< "$item"
+                  full_image="$(ACR_NAME).azurecr.io/${name}:${IMAGE_TAG}"
+                  docker build -f "$dockerfile" -t "$full_image" "$context"
+                  docker push "$full_image"
+                done
 
   - stage: Deploy_Dev
     displayName: Deploy Dev
@@ -200,7 +214,9 @@ stages:
                       fi
                       echo "Using workload identity (dev): ${DEV_UAMI_ID}"
 
-                      sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-serviceaccount.yaml
+                      for f in k8s/overlays/dev/patch-serviceaccount*.yaml; do
+                        sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" "$f"
+                      done
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_DEV)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_TENANT_ID|$(AZURE_TENANT_ID)|g" k8s/overlays/dev/patch-secretproviderclass.yaml
@@ -254,11 +270,31 @@ stages:
                       if ! timeout 25m env ENABLE_HTTPS=true LETSENCRYPT_EMAIL='$(LETSENCRYPT_EMAIL)' INGRESS_NGINX_REPLICA_COUNT="${INGRESS_NGINX_REPLICA_COUNT_DEV:-1}" bash scripts/prepare_public_api_endpoint.sh dev; then
                         echo "WARNING: Public endpoint preparation failed in dev. Continuing backend rollout."
                       fi
-                      kubectl set image deployment/energypredict-api-dev api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-dev
+                      API_IMAGE="$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion)"
+                      TRAINING_IMAGE="$(ACR_NAME).azurecr.io/$(TRAINING_IMAGE_NAME):$(Build.SourceVersion)"
+                      DATA_PROCESSOR_IMAGE="$(ACR_NAME).azurecr.io/$(DATA_PROCESSOR_IMAGE_NAME):$(Build.SourceVersion)"
+                      kubectl set image deployment/energypredict-api-dev api="${API_IMAGE}" -n energypredict-dev
+                      kubectl set image deployment/energypredict-data-processor-dev data-processor="${DATA_PROCESSOR_IMAGE}" -n energypredict-dev
+                      kubectl set image job/energypredict-training-template-dev training="${TRAINING_IMAGE}" -n energypredict-dev || true
                       DEV_EVENTHUB_FQ_NAMESPACE=""
                       if [ -n "${EVENTHUB_NAMESPACE_NAME_DEV:-}" ]; then
                         DEV_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_DEV}.servicebus.windows.net"
                       fi
+                      if [ -z "${MODEL_STORAGE_ACCOUNT_NAME_DEV:-}" ]; then
+                        echo "ERROR: MODEL_STORAGE_ACCOUNT_NAME_DEV is required for cloud model artifacts/cache."
+                        echo "Set it from Terraform output 'model_storage_account_name' in Variable Group 'energypredict-shared'."
+                        exit 1
+                      fi
+                      if [ -z "${DATABRICKS_HOST_DEV:-}" ]; then
+                        echo "ERROR: DATABRICKS_HOST_DEV is required for Databricks MLflow tracking."
+                        echo "Example: https://adb-<workspace-id>.<region>.azuredatabricks.net"
+                        exit 1
+                      fi
+                      kubectl set env configmap/energypredict-config-dev \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
+                        -n energypredict-dev
                       kubectl set env deployment/energypredict-api-dev \
                         CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_DEV) \
                         STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_DEV:-false}" \
@@ -266,16 +302,33 @@ stages:
                         EVENTHUB_NAME="${EVENTHUB_NAME_DEV:-}" \
                         EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
                         EVENTHUB_FQ_NAMESPACE=${DEV_EVENTHUB_FQ_NAMESPACE} \
+                        MODEL_REGISTRY_BACKEND=blob \
+                        MODEL_ARTIFACT_BACKEND=blob \
+                        K8S_TRAINING_JOB_IMAGE="${TRAINING_IMAGE}" \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
                         LLM_MODEL="${LLM_MODEL:-}" \
                         LLM_ENDPOINT="${LLM_ENDPOINT:-}" \
                         LLM_API_KEY="${LLM_API_KEY:-}" \
+                        -n energypredict-dev
+                      kubectl set env deployment/energypredict-data-processor-dev \
+                        EVENTHUB_NAME="${EVENTHUB_NAME_DEV:-}" \
+                        EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
+                        EVENTHUB_FQ_NAMESPACE=${DEV_EVENTHUB_FQ_NAMESPACE} \
+                        MODEL_REGISTRY_BACKEND=blob \
+                        MODEL_ARTIFACT_BACKEND=blob \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         -n energypredict-dev
                       echo "Public API endpoint (dev): ${PUBLIC_API_BASE_URL:-not-set}"
                       if ! kubectl rollout status deployment/energypredict-api-dev -n energypredict-dev --timeout=300s; then
                         debug_rollout "energypredict-dev" "energypredict-api-dev"
                         exit 1
                       fi
+                      kubectl rollout status deployment/energypredict-data-processor-dev -n energypredict-dev --timeout=300s
                       run_smoke_tests "energypredict-dev" "energypredict-api-dev" "18080"
 
   - stage: Deploy_Prod
@@ -383,7 +436,9 @@ stages:
                       fi
                       echo "Using workload identity (prod): ${PROD_UAMI_ID}"
 
-                      sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-serviceaccount.yaml
+                      for f in k8s/overlays/prod/patch-serviceaccount*.yaml; do
+                        sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" "$f"
+                      done
                       sed -i "s|REPLACE_ME_CLIENT_ID|$(AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_KEYVAULT_NAME|$(KEY_VAULT_NAME_PROD)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
                       sed -i "s|REPLACE_ME_TENANT_ID|$(AZURE_TENANT_ID)|g" k8s/overlays/prod/patch-secretproviderclass.yaml
@@ -444,11 +499,31 @@ stages:
                         debug_public_endpoint
                         exit 1
                       fi
-                      kubectl set image deployment/energypredict-api-prod api=$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion) -n energypredict-prod
+                      API_IMAGE="$(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.SourceVersion)"
+                      TRAINING_IMAGE="$(ACR_NAME).azurecr.io/$(TRAINING_IMAGE_NAME):$(Build.SourceVersion)"
+                      DATA_PROCESSOR_IMAGE="$(ACR_NAME).azurecr.io/$(DATA_PROCESSOR_IMAGE_NAME):$(Build.SourceVersion)"
+                      kubectl set image deployment/energypredict-api-prod api="${API_IMAGE}" -n energypredict-prod
+                      kubectl set image deployment/energypredict-data-processor-prod data-processor="${DATA_PROCESSOR_IMAGE}" -n energypredict-prod
+                      kubectl set image job/energypredict-training-template-prod training="${TRAINING_IMAGE}" -n energypredict-prod || true
                       PROD_EVENTHUB_FQ_NAMESPACE=""
                       if [ -n "${EVENTHUB_NAMESPACE_NAME_PROD:-}" ]; then
                         PROD_EVENTHUB_FQ_NAMESPACE="${EVENTHUB_NAMESPACE_NAME_PROD}.servicebus.windows.net"
                       fi
+                      if [ -z "${MODEL_STORAGE_ACCOUNT_NAME_PROD:-}" ]; then
+                        echo "ERROR: MODEL_STORAGE_ACCOUNT_NAME_PROD is required for cloud model artifacts/cache."
+                        echo "Set it from Terraform output 'model_storage_account_name' in Variable Group 'energypredict-shared'."
+                        exit 1
+                      fi
+                      if [ -z "${DATABRICKS_HOST_PROD:-}" ]; then
+                        echo "ERROR: DATABRICKS_HOST_PROD is required for Databricks MLflow tracking."
+                        echo "Example: https://adb-<workspace-id>.<region>.azuredatabricks.net"
+                        exit 1
+                      fi
+                      kubectl set env configmap/energypredict-config-prod \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
+                        -n energypredict-prod
                       kubectl set env deployment/energypredict-api-prod \
                         CORS_ALLOWED_ORIGINS=$(CORS_ALLOWED_ORIGINS_PROD) \
                         STREAM_INGESTION_ENABLED="${STREAM_INGESTION_ENABLED_PROD:-false}" \
@@ -456,14 +531,31 @@ stages:
                         EVENTHUB_NAME="${EVENTHUB_NAME_PROD:-}" \
                         EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
                         EVENTHUB_FQ_NAMESPACE=${PROD_EVENTHUB_FQ_NAMESPACE} \
+                        MODEL_REGISTRY_BACKEND=blob \
+                        MODEL_ARTIFACT_BACKEND=blob \
+                        K8S_TRAINING_JOB_IMAGE="${TRAINING_IMAGE}" \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
                         LLM_MODEL="${LLM_MODEL:-}" \
                         LLM_ENDPOINT="${LLM_ENDPOINT:-}" \
                         LLM_API_KEY="${LLM_API_KEY:-}" \
+                        -n energypredict-prod
+                      kubectl set env deployment/energypredict-data-processor-prod \
+                        EVENTHUB_NAME="${EVENTHUB_NAME_PROD:-}" \
+                        EVENTHUB_CONSUMER_GROUP="${EVENTHUB_CONSUMER_GROUP:-\$Default}" \
+                        EVENTHUB_FQ_NAMESPACE=${PROD_EVENTHUB_FQ_NAMESPACE} \
+                        MODEL_REGISTRY_BACKEND=blob \
+                        MODEL_ARTIFACT_BACKEND=blob \
+                        MLFLOW_TRACKING_URI=databricks \
+                        MLFLOW_REGISTRY_URI=databricks-uc \
+                        DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         -n energypredict-prod
                       echo "Public API endpoint (prod): ${PUBLIC_API_BASE_URL:-not-set}"
                       if ! kubectl rollout status deployment/energypredict-api-prod -n energypredict-prod --timeout=420s; then
                         debug_rollout "energypredict-prod" "energypredict-api-prod"
                         exit 1
                       fi
+                      kubectl rollout status deployment/energypredict-data-processor-prod -n energypredict-prod --timeout=420s
                       run_smoke_tests "energypredict-prod" "energypredict-api-prod" "18081"

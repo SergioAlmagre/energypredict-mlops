@@ -42,6 +42,10 @@ output "workload_identity_service_account_name" {
   value = local.effective_sa_name
 }
 
+output "workload_identity_service_account_names" {
+  value = local.effective_workload_identity_service_account_names
+}
+
 output "dns_zone_name" {
   value = try(azurerm_dns_zone.this[0].name, null)
 }
@@ -104,4 +108,24 @@ output "llm_model" {
 
 output "llm_endpoint" {
   value = var.llm_endpoint
+}
+
+output "model_storage_account_name" {
+  value = try(azurerm_storage_account.model[0].name, null)
+}
+
+output "model_storage_account_url" {
+  value = try(azurerm_storage_account.model[0].primary_blob_endpoint, null)
+}
+
+output "blob_models_container" {
+  value = var.enable_model_storage ? var.blob_models_container : null
+}
+
+output "blob_registry_container" {
+  value = var.enable_model_storage ? var.blob_registry_container : null
+}
+
+output "blob_processed_container" {
+  value = var.enable_model_storage ? var.blob_processed_container : null
 }

@@ -14,7 +14,16 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
     role: UserRole
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "email": "ml.engineer@example.com",
+                "password": "StrongPassword123!",
+                "role": "ml_engineer",
+            }
+        },
+    )
 
 
 class UserOut(BaseModel):
@@ -29,6 +38,16 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int = Field(..., gt=0)
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example",
+                "token_type": "bearer",
+                "expires_in": 1800,
+            }
+        }
+    )
 
 
 class UserMe(BaseModel):

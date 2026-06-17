@@ -34,6 +34,14 @@ spec:
                 name: energypredict-config
             - secretRef:
                 name: energypredict-secrets
+          startupProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /api/v1/health/ready

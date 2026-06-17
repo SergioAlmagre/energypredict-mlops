@@ -10,10 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY pyproject.toml README.md ./
 COPY app ./app
+COPY training-job/train.py ./training-job/train.py
 RUN pip install --no-cache-dir -e .
 
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser:appuser /app
-USER appuser
-
-EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "training-job/train.py"]

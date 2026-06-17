@@ -15,6 +15,18 @@ Formato:
 - Auth vÃ­a `Authorization: Bearer <token>`.
 - Errores con estructura consistente.
 
+## OpenAPI
+
+FastAPI genera la especificacion OpenAPI automaticamente a partir de rutas, tipos Pydantic y `response_model`.
+
+Endpoints de documentacion:
+
+- `GET /docs`: Swagger UI interactivo.
+- `GET /redoc`: ReDoc.
+- `GET /openapi.json`: contrato OpenAPI en JSON.
+
+La app declara metadata de API, version, tags y descripciones en `app/main.py`. Los schemas de request/response viven en `app/schemas/` y contienen ejemplos para mejorar Swagger UI.
+
 ## Estructura estÃ¡ndar de error
 
 ```json
@@ -67,9 +79,34 @@ Respuesta:
 {
   "status": "ready",
   "database": "ok",
-  "model": "ok"
+  "model": "ok",
+  "model_name": "asset_failure_classifier",
+  "model_version": "2026.06.17.120000"
 }
 ```
+
+Respuesta cuando no esta listo:
+
+```json
+{
+  "detail": {
+    "status": "not_ready",
+    "database": "ok",
+    "model": "unavailable",
+    "reason": "no_production_model_registered"
+  }
+}
+```
+
+Codigos `reason` esperados:
+
+- `database_unreachable`: la API no puede ejecutar `SELECT 1` contra la DB.
+- `no_production_model_registered`: el registry no tiene modelo production disponible.
+- `registry_backend_unreachable`: el backend del registry, por ejemplo Blob Storage, no esta accesible o configurado.
+- `registry_payload_invalid`: el payload del registry no es JSON valido.
+- `model_readiness_check_failed`: fallo inesperado al comprobar metadata del modelo.
+
+Este endpoint no carga el artifact `.pkl`; solo comprueba metadata del modelo production para evitar trabajo pesado en cada probe de Kubernetes.
 
 ## Auth
 

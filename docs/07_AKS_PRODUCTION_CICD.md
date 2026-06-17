@@ -13,6 +13,25 @@ Existe un flujo real CI/CD en Azure DevOps con pipelines separados para infraest
   - Readiness: `/api/v1/health/ready`
 - Estrategia de rollout: `RollingUpdate`.
 
+### Readiness y orden de arranque
+
+Kubernetes no orquesta dependencias de negocio en orden estricto. La API puede arrancar antes de que exista un modelo production, pero no recibira trafico mientras `/api/v1/health/ready` responda `503`.
+
+La readiness actual comprueba:
+
+1. DB accesible con `SELECT 1`.
+2. Metadata de modelo production disponible en el registry.
+
+Si falla, devuelve un `reason` operativo:
+
+- `database_unreachable`
+- `no_production_model_registered`
+- `registry_backend_unreachable`
+- `registry_payload_invalid`
+- `model_readiness_check_failed`
+
+Esto permite distinguir un problema de inicializacion real de una dependencia todavia no disponible. Un fallo de readiness deja el pod en `Running` pero `NotReady`; no deberia provocar `CrashLoopBackOff`.
+
 ## Despliegue frontend (HTTPS)
 - Frontend estatico: `frontend/simulator-portal`.
 - Hosting: Azure Static Web App.

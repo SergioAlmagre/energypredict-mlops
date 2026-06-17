@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: energypredict-data-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: energypredict-data-processor
+  template:
+    metadata:
+      labels:
+        app: energypredict-data-processor
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: energypredict-data-processor
+      containers:
+        - name: data-processor
+          image: energypredict-data-processor:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: energypredict-config
+            - secretRef:
+                name: energypredict-secrets
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: energypredict-kv-secrets

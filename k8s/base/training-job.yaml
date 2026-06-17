@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: energypredict-training-template
+spec:
+  suspend: true
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: energypredict-training
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: energypredict-training
+      containers:
+        - name: training
+          image: energypredict-training:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: energypredict-config
+            - secretRef:
+                name: energypredict-secrets
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          env:
+            - name: DATASET_URI
+              value: "azureblob://processed/latest/sensor_data.csv"
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: energypredict-kv-secrets

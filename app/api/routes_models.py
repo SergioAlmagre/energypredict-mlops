@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.security import require_roles
+from app.core.config import get_settings
 from app.db.models import TrainingRun, User
 from app.db.session import get_db
 from app.integrations.databricks_client import DatabricksClient
@@ -14,17 +15,65 @@ from app.services.ml_orchestrator import MLOrchestrator
 router = APIRouter(prefix="/models", tags=["models"])
 
 
-@router.get("/current")
+@router.get(
+    "/current",
+    summary="Get current production model",
+    responses={
+        200: {"description": "Current production model metadata."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Authenticated user does not have access to model metadata."},
+        404: {"description": "No model has been registered yet."},
+    },
+)
 def current_model(current_user: User = Depends(require_roles("consumer", "analyst", "ml_engineer", "admin"))):
     return get_current_model()
 
 
-@router.post("/train", response_model=TrainModelResponse)
+@router.post(
+    "/train",
+    response_model=TrainModelResponse | dict,
+    summary="Train a model or submit a remote training job",
+    description=(
+        "In local mode this endpoint trains synchronously and returns model metrics. "
+        "In cloud mode it submits a Kubernetes/Databricks training job and returns HTTP 202."
+    ),
+    responses={
+        200: {"description": "Training completed synchronously in local mode."},
+        202: {"description": "Training job submitted in cloud mode."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can train models."},
+        422: {"description": "Invalid training request."},
+    },
+)
 def train_model_endpoint(
     payload: TrainModelRequest,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles("ml_engineer", "admin")),
 ):
+    settings = get_settings()
+    if settings.training_mode in {"k8s_job", "databricks"}:
+        result = DatabricksClient().trigger_training_job(
+            dataset_uri=payload.dataset_uri,
+            parameters={**payload.parameters, "register_model": payload.register_model, "algorithm": payload.algorithm},
+            experiment_name=settings.mlflow_experiment_name,
+        )
+        db.add(
+            TrainingRun(
+                run_id=result["job_run_id"],
+                status="submitted",
+                dataset_uri=payload.dataset_uri,
+                model_id=None,
+                model_version=None,
+                metrics={},
+                parameters=payload.model_dump().get("parameters", {}),
+                created_by_user_id=current_user.id,
+            )
+        )
+        db.commit()
+        response.status_code = status.HTTP_202_ACCEPTED
+        return result
+
     payload_data = payload.model_dump()
     result = train_model_service(payload_data)
     db_run = TrainingRun(
@@ -42,7 +91,16 @@ def train_model_endpoint(
     return result
 
 
-@router.post("/train/remote")
+@router.post(
+    "/train/remote",
+    summary="Submit remote training job",
+    responses={
+        200: {"description": "Remote training job submitted."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can train models."},
+        422: {"description": "Invalid training request."},
+    },
+)
 def train_model_remote_databricks(
     payload: TrainModelRequest,
     current_user: User = Depends(require_roles("ml_engineer", "admin")),
@@ -56,7 +114,37 @@ def train_model_remote_databricks(
     return result
 
 
-@router.get("/integrations/status")
+@router.post(
+    "/reload",
+    summary="Reload current model metadata",
+    responses={
+        200: {"description": "Current model metadata reloaded."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can reload models."},
+    },
+)
+def reload_model(
+    payload: dict | None = None,
+    current_user: User = Depends(require_roles("ml_engineer", "admin")),
+):
+    current = get_current_model()
+    return {
+        "status": "reloaded",
+        "model": current,
+        "requested_by_user_id": current_user.id,
+        "payload": payload or {},
+    }
+
+
+@router.get(
+    "/integrations/status",
+    summary="Check MLOps integration status",
+    responses={
+        200: {"description": "Integration status for Databricks, Snowflake and MLflow."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can inspect integrations."},
+    },
+)
 def integrations_status(
     current_user: User = Depends(require_roles("ml_engineer", "admin")),
 ):
@@ -70,7 +158,17 @@ def integrations_status(
     }
 
 
-@router.post("/train-and-promote", response_model=TrainAndPromoteResponse)
+@router.post(
+    "/train-and-promote",
+    response_model=TrainAndPromoteResponse,
+    summary="Train and optionally promote a model",
+    responses={
+        200: {"description": "Training completed and promotion decision returned."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Only ml_engineer and admin roles can train models."},
+        422: {"description": "Invalid training request."},
+    },
+)
 def train_and_promote_endpoint(
     payload: TrainModelRequest,
     db: Session = Depends(get_db),

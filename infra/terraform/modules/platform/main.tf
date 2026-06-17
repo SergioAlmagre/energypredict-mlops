@@ -18,9 +18,17 @@ locals {
     )
   } : {}
 
-  effective_app_secrets  = merge(var.key_vault_app_secrets, local.generated_app_secrets)
-  effective_namespace    = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
-  effective_sa_name      = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  generated_storage_secrets = var.enable_model_storage ? {
+    AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.model[0].primary_connection_string
+  } : {}
+
+  effective_app_secrets = merge(var.key_vault_app_secrets, local.generated_app_secrets, local.generated_storage_secrets)
+  effective_namespace   = coalesce(var.kubernetes_namespace, "${var.project_name}-${var.environment}")
+  effective_sa_name     = coalesce(var.workload_identity_service_account_name, "${var.project_name}-api-${var.environment}")
+  effective_workload_identity_service_account_names = distinct(concat(
+    [local.effective_sa_name],
+    var.workload_identity_additional_service_account_names
+  ))
   effective_aks_location = coalesce(var.aks_location, azurerm_resource_group.this.location)
   effective_eventhub_namespace_name = coalesce(
     var.eventhub_namespace_name,
@@ -29,6 +37,10 @@ locals {
   effective_eventhub_name = coalesce(
     var.eventhub_name,
     "${var.project_name}-${var.environment}-events"
+  )
+  effective_model_storage_account_name = coalesce(
+    var.model_storage_account_name,
+    substr(replace(lower("${var.project_name}${var.environment}mlops"), "/[^0-9a-z]/", ""), 0, 24)
   )
 }
 
@@ -56,6 +68,42 @@ resource "azurerm_container_registry" "this" {
   sku                 = "Basic"
   admin_enabled       = false
   tags                = local.base_tags
+}
+
+resource "azurerm_storage_account" "model" {
+  count = var.enable_model_storage ? 1 : 0
+
+  name                     = local.effective_model_storage_account_name
+  location                 = azurerm_resource_group.this.location
+  resource_group_name      = azurerm_resource_group.this.name
+  account_tier             = "Standard"
+  account_replication_type = var.model_storage_replication_type
+  min_tls_version          = "TLS1_2"
+  tags                     = local.base_tags
+}
+
+resource "azurerm_storage_container" "models" {
+  count = var.enable_model_storage ? 1 : 0
+
+  name                  = var.blob_models_container
+  storage_account_name  = azurerm_storage_account.model[0].name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "registry" {
+  count = var.enable_model_storage ? 1 : 0
+
+  name                  = var.blob_registry_container
+  storage_account_name  = azurerm_storage_account.model[0].name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "processed" {
+  count = var.enable_model_storage ? 1 : 0
+
+  name                  = var.blob_processed_container
+  storage_account_name  = azurerm_storage_account.model[0].name
+  container_access_type = "private"
 }
 
 resource "azurerm_user_assigned_identity" "aks" {
@@ -264,14 +312,22 @@ resource "azurerm_role_assignment" "aks_eventhub_data_receiver" {
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
-resource "azurerm_federated_identity_credential" "aks_workload" {
-  count = var.enable_workload_identity ? 1 : 0
+resource "azurerm_role_assignment" "aks_storage_blob_contributor" {
+  count = var.enable_model_storage ? 1 : 0
 
-  name                      = "${var.project_name}-${var.environment}-workload-fic"
+  scope                = azurerm_storage_account.model[0].id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.aks.principal_id
+}
+
+resource "azurerm_federated_identity_credential" "aks_workload" {
+  for_each = var.enable_workload_identity ? toset(local.effective_workload_identity_service_account_names) : toset([])
+
+  name                      = "${replace(each.value, "_", "-")}-fic"
   user_assigned_identity_id = azurerm_user_assigned_identity.aks.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = azurerm_kubernetes_cluster.this.oidc_issuer_url
-  subject                   = "system:serviceaccount:${local.effective_namespace}:${local.effective_sa_name}"
+  subject                   = "system:serviceaccount:${local.effective_namespace}:${each.value}"
 }
 
 resource "azurerm_dns_zone" "this" {

@@ -7,8 +7,12 @@ from typing import Any, Dict, List
 
 import joblib
 
+from app.core.config import get_settings
+from app.integrations.blob_storage import download_file_uri, is_blob_configured, read_json, write_json
+
 MODELS_DIR = Path("models")
 REGISTRY_PATH = MODELS_DIR / "registry.json"
+REGISTRY_BLOB_NAME = "registry.json"
 
 
 def _now_iso() -> str:
@@ -20,12 +24,21 @@ def _default_registry() -> Dict[str, Any]:
 
 
 def load_registry() -> Dict[str, Any]:
+    settings = get_settings()
+    if settings.model_registry_backend == "blob" and is_blob_configured():
+        registry = read_json(settings.blob_registry_container, REGISTRY_BLOB_NAME)
+        if registry:
+            return registry
     if not REGISTRY_PATH.exists():
         return _default_registry()
     return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
 
 
 def save_registry(registry: Dict[str, Any]) -> None:
+    settings = get_settings()
+    if settings.model_registry_backend == "blob" and is_blob_configured():
+        write_json(settings.blob_registry_container, REGISTRY_BLOB_NAME, registry)
+        return
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     REGISTRY_PATH.write_text(json.dumps(registry, indent=2), encoding="utf-8")
 
@@ -79,7 +92,7 @@ def get_current_model_metadata() -> Dict[str, Any]:
 
 def load_current_model():
     metadata = get_current_model_metadata()
-    model_path = Path(metadata["artifact_uri"])
+    model_path = download_file_uri(metadata["artifact_uri"])
     if not model_path.exists():
         raise FileNotFoundError(f"Model artifact not found: {model_path}")
     return joblib.load(model_path), metadata

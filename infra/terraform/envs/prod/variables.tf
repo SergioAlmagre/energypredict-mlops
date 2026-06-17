@@ -60,8 +60,38 @@ variable "workload_identity_service_account_name" {
   type    = string
   default = null
 }
+
+variable "workload_identity_additional_service_account_names" {
+  type    = list(string)
+  default = []
+}
+
 variable "key_vault_app_secrets" {
   type = map(string)
+}
+variable "enable_model_storage" {
+  type    = bool
+  default = true
+}
+variable "model_storage_account_name" {
+  type    = string
+  default = null
+}
+variable "model_storage_replication_type" {
+  type    = string
+  default = "LRS"
+}
+variable "blob_models_container" {
+  type    = string
+  default = "models"
+}
+variable "blob_registry_container" {
+  type    = string
+  default = "registry"
+}
+variable "blob_processed_container" {
+  type    = string
+  default = "processed"
 }
 variable "enable_postgresql" { type = bool }
 variable "postgresql_server_name" { type = string }

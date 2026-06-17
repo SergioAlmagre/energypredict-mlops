@@ -33,7 +33,26 @@ except Exception:
     pass
 logger = logging.getLogger("energypredict.request")
 
-app = FastAPI(title=settings.app_name)
+openapi_tags = [
+    {"name": "health", "description": "Runtime health checks used by Kubernetes probes and operators."},
+    {"name": "auth", "description": "JWT authentication and current-user endpoints."},
+    {"name": "predictions", "description": "Online inference endpoints for industrial asset risk scoring."},
+    {"name": "models", "description": "Training, model registry, promotion and MLOps integration endpoints."},
+    {"name": "admin", "description": "Administrative controls for simulation and risk thresholds."},
+    {"name": "stream", "description": "Latest sensor events produced by streaming ingestion."},
+    {"name": "alerts", "description": "Active predictive-maintenance alerts."},
+]
+
+app = FastAPI(
+    title=settings.app_name,
+    description=(
+        "Industrial predictive-maintenance MLOps API. The service exposes JWT-protected inference, "
+        "model training orchestration, AKS health probes and operational endpoints."
+    ),
+    version="1.0.0",
+    contact={"name": "EnergyPredict MLOps"},
+    openapi_tags=openapi_tags,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allowed_origins_list,

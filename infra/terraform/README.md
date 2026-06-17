@@ -18,10 +18,11 @@
 - AKS Key Vault CSI add-on (configurable)
 - Key Vault (RBAC enabled) and AKS identity access (`Key Vault Secrets User`)
 - ACR pull permission for AKS identity (`AcrPull`)
-- Federated Identity Credential for Kubernetes service account to use UAMI
+- Federated Identity Credentials for Kubernetes service accounts to use UAMI
 - Optional Azure Databricks workspace (`enable_databricks=true`)
 - Optional Azure Database for PostgreSQL Flexible Server (`enable_postgresql=true`)
 - Optional Azure Static Web App for simulator UI (`enable_static_web_app=true`)
+- Optional Storage Account and Blob containers for model artifacts, registry cache and processed datasets (`enable_model_storage=true`)
 - Optional DNS Zone
 - Key Vault secret bootstrap via `key_vault_app_secrets` map
 
@@ -63,6 +64,8 @@ Use outputs to populate Azure DevOps variables:
 - `AKS_DEV_RESOURCE_GROUP` / `AKS_PROD_RESOURCE_GROUP`
 - `KEY_VAULT_NAME`
 - `DATABRICKS_WORKSPACE_URL` from `databricks_workspace_url`
+- `DATABRICKS_HOST_DEV/PROD` as `https://<databricks_workspace_url>`
+- `MODEL_STORAGE_ACCOUNT_NAME_DEV/PROD` from `model_storage_account_name`
 - `STATIC_WEB_APP_DEV_NAME` / `STATIC_WEB_APP_PROD_NAME` from `static_web_app_name`
 - `STATIC_WEB_APP_DEV_HOST` / `STATIC_WEB_APP_PROD_HOST` from `static_web_app_default_host_name`
 - `AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV/PROD` from `identity_client_id`
@@ -71,6 +74,7 @@ Use outputs to populate Azure DevOps variables:
 ## Notes
 
 - No real secrets are committed.
+- Store `DATABRICKS_TOKEN` in `key_vault_app_secrets`; it is exposed to pods as Key Vault secret `databricks-token`.
 - Keep `terraform.tfvars` out of git.
 - Snowflake is not provisioned by AzureRM. Configure it externally and store credentials in Key Vault.
 - For production hardening, add private AKS/API server restrictions, network policies, and private endpoints.

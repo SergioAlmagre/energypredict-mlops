@@ -16,9 +16,9 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
 4. Prediccion: `POST /predict` autenticado, respuesta con `prediction_id`, `risk_level`, `failure_probability`, `model_version`.
 5. Modelos: `GET /models/current` autenticado, `POST /models/train` restringido a `ml_engineer|admin`.
 6. Integraciones MLOps:
-   - MLflow: logging local en `artifacts/mlflow_runs.json` (simulado).
-   - Databricks: cliente stub con `job_run_id` (simulado).
-   - Snowflake: adapter CSV local (`data/synthetic_sensor_data.csv`) (simulado).
+   - MLflow: fallback local para desarrollo y Databricks MLflow en cloud.
+   - Databricks: launcher configurable para Kubernetes Jobs o Databricks Jobs API.
+   - Snowflake/datasets: CSV local para desarrollo y lectura cloud configurable.
 
 ## Orden de integracion por fases
 1. Fase 0 - Contrato y baseline
@@ -32,7 +32,8 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
    - Secretos por entorno, rate limiting, auditoria extendida, observabilidad.
    - Gates de calidad mas estrictos en CI.
 4. Fase 3 - Integraciones productivas
-   - Sustituir stubs de Databricks/Snowflake/MLflow por servicios reales.
+   - Validar conectores reales con credenciales cloud y datos representativos.
+   - Declarar objetos Databricks con Terraform si se exige IaC completo dentro del workspace.
    - Promotion flow dev->prod con evidencia y rollback probado.
 
 ## Checklist de integracion por fase
@@ -56,5 +57,5 @@ Coordinar integracion incremental por fases, con ownership claro y contratos com
 - Funcional: contrato del endpoint cumplido y cubierto por test.
 - Seguridad: autenticacion/autorizacion aplicada segun rol.
 - Calidad: `python -m pytest -q` en verde sin romper tests existentes.
-- Documentacion: README y docs sin contradiccion con estado real (incluyendo que esta simulado).
+- Documentacion: README y docs sin contradiccion con estado real, diferenciando fallback local de runtime cloud.
 - Operacion: pasos de ejecucion local y despliegue documentados.

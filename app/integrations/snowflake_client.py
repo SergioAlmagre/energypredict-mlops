@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 
 from app.core.config import get_settings
+from app.integrations.blob_storage import download_file_uri
 
 
 class SnowflakeClient:
@@ -65,6 +66,9 @@ class SnowflakeClient:
         }
 
     def load_sensor_data(self, dataset_uri: str = "data/synthetic_sensor_data.csv") -> pd.DataFrame:
+        if dataset_uri.startswith("azureblob://"):
+            return pd.read_csv(download_file_uri(dataset_uri))
+
         if self.is_configured() and dataset_uri.startswith("snowflake://"):
             query = "SELECT * FROM SENSOR_EVENTS_TRAINING"
             with self._connect() as conn:

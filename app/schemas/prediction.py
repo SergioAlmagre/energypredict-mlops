@@ -13,7 +13,20 @@ class PredictionRequest(BaseModel):
     energy_consumption: float = Field(..., ge=0)
     operating_hours: float = Field(..., ge=0)
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "asset_code": "PUMP-001",
+                "temperature": 82.4,
+                "pressure": 210.0,
+                "vibration": 7.2,
+                "flow_rate": 120.5,
+                "energy_consumption": 450.0,
+                "operating_hours": 5300.0,
+            }
+        },
+    )
 
 
 class PredictionResponse(BaseModel):
@@ -26,6 +39,21 @@ class PredictionResponse(BaseModel):
     model_version: str
     created_at: datetime
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "prediction_id": "8c1e67b9-5d6f-4275-9d32-b23b47cf64a6",
+                "asset_code": "PUMP-001",
+                "risk_level": "medium",
+                "failure_probability": 0.42,
+                "recommendation": "Schedule preventive inspection in the next 7 days.",
+                "model_name": "asset_failure_classifier",
+                "model_version": "2026.06.17.example",
+                "created_at": "2026-06-17T10:30:00Z",
+            }
+        }
+    )
+
 
 class TrainModelRequest(BaseModel):
     dataset_uri: str = "data/synthetic_sensor_data.csv"
@@ -33,7 +61,17 @@ class TrainModelRequest(BaseModel):
     register_model: bool = True
     parameters: dict[str, float | int | str | bool] = Field(default_factory=dict)
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(
+        extra="ignore",
+        json_schema_extra={
+            "example": {
+                "dataset_uri": "azureblob://processed/latest/sensor_data.csv",
+                "algorithm": "RandomForestClassifier",
+                "register_model": True,
+                "parameters": {"n_estimators": 120, "max_depth": 8, "random_state": 42},
+            }
+        },
+    )
 
 
 class TrainMetrics(BaseModel):
@@ -57,6 +95,24 @@ class TrainModelResponse(BaseModel):
     status: Literal["completed"]
     metrics: TrainMetrics
     model: TrainedModelInfo
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "run_id": "0f8274f7-37e6-407a-a890-0a5173576be6",
+                "status": "completed",
+                "metrics": {"accuracy": 0.94, "precision": 0.92, "recall": 0.91, "f1_score": 0.915},
+                "model": {
+                    "model_id": "example-production-model",
+                    "name": "asset_failure_classifier",
+                    "version": "2026.06.17.example",
+                    "artifact_uri": "azureblob://models/asset_failure_classifier/2026.06.17.example/model.pkl",
+                    "algorithm": "RandomForestClassifier",
+                    "registered": True,
+                },
+            }
+        }
+    )
 
 
 class TrainAndPromoteResponse(BaseModel):

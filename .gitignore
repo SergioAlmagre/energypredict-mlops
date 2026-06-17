@@ -6,7 +6,11 @@ __pycache__/
 .env
 *.db
 *.log
-/artifacts/*.pkl
+/artifacts/*
+!/artifacts/README.md
+/models/*.pkl
+/models/registry.json
+!/models/registry.example.json
 
 # Terraform local artifacts
 infra/terraform/**/.terraform/

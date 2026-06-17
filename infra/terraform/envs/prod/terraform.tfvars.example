@@ -24,8 +24,12 @@ static_web_app_sku_tier                = "Standard"
 static_web_app_sku_size                = "Standard"
 enable_workload_identity               = true
 enable_key_vault_csi                   = true
-kubernetes_namespace                   = "<project>-prod"
-workload_identity_service_account_name = "<project>-api-prod"
+kubernetes_namespace                   = "energypredict-prod"
+workload_identity_service_account_name = "energypredict-api-prod"
+workload_identity_additional_service_account_names = [
+  "energypredict-training-prod",
+  "energypredict-data-processor-prod",
+]
 enable_postgresql                      = true
 postgresql_server_name                 = "pg-<project>-prod"
 postgresql_location                    = "<azure-region>"
@@ -37,6 +41,12 @@ postgresql_storage_mb                  = 65536
 postgresql_version                     = "16"
 postgresql_public_access_enabled       = true
 enable_eventhub_streaming              = true
+enable_model_storage                   = true
+model_storage_account_name             = "stprojectprodmlops"
+model_storage_replication_type         = "ZRS"
+blob_models_container                  = "models"
+blob_registry_container                = "registry"
+blob_processed_container               = "processed"
 eventhub_namespace_name                = "evhns-<project>-prod"
 eventhub_namespace_sku                 = "Standard"
 eventhub_namespace_capacity            = 1
@@ -51,8 +61,9 @@ llm_model                              = "llama-3.1-70b-versatile"
 llm_endpoint                           = "https://api.groq.com/openai/v1/chat/completions"
 
 key_vault_app_secrets = {
-  JWT_SECRET_KEY = "<jwt-secret>"
-  DATABASE_URL   = "<database-url>"
+  JWT_SECRET_KEY  = "<jwt-secret>"
+  DATABASE_URL    = "<database-url>"
+  DATABRICKS_TOKEN = "<databricks-pat-or-service-principal-token>"
 }
 
 tags = {

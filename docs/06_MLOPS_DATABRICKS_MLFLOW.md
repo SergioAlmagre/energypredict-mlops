@@ -2,7 +2,10 @@
 
 ## Estado actual
 - Utilidades ML base en `app/ml`.
-- Flujo MLOps descrito, sin integración real en ejecución aún.
+- Entrenamiento local para desarrollo y Kubernetes Jobs para cloud.
+- Tracking en Databricks MLflow mediante `MLFLOW_TRACKING_URI=databricks`.
+- Registry gestionado preparado para Unity Catalog con `MLFLOW_REGISTRY_URI=databricks-uc`.
+- Cache operativo de artifacts y `registry.json` en Azure Blob Storage.
 
 ## Flujo MLOps objetivo
 1. Ingesta de datos de sensores/históricos.
@@ -19,16 +22,20 @@
 - Snowflake: fuente de histórico corporativo.
 - FastAPI: serving y orquestación, no training pesado.
 
-## MVP implementado vs extensión
+## Implementado vs extension
 
-### MVP implementado
-- Diseño de proceso MLOps.
-- Módulos base para features/métricas.
+### Implementado
+- Endpoint `/models/train` con modo local y modo cloud `k8s_job`.
+- Registro de training runs, metricas y modelo promovido.
+- Artifacts `.pkl` publicados en Blob Storage cuando `MODEL_ARTIFACT_BACKEND=blob`.
+- Registry operativo en Blob cuando `MODEL_REGISTRY_BACKEND=blob`.
+- Databricks MLflow para tracking y Unity Catalog como registry gestionado.
+- Readiness de API validando DB y metadata de modelo production.
 
-### Extensión productiva
-- Endpoint `/models/train` conectado a Job Databricks.
-- Persistencia de `run_id`, métricas y modelo promovido.
-- Monitoreo de drift y calidad en producción.
+### Extension productiva
+- Databricks provider en Terraform para declarar experiments, jobs y esquemas Unity Catalog.
+- Monitoreo de drift y calidad en produccion.
+- Promotion flow formal entre dev/staging/prod con aprobaciones.
 
 ## Streaming Databricks -> Event Hub (implemented contract)
 Archivo base del generador:

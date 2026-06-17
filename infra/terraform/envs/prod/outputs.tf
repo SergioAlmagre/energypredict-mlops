@@ -34,6 +34,10 @@ output "workload_identity_service_account_name" {
   value = module.platform.workload_identity_service_account_name
 }
 
+output "workload_identity_service_account_names" {
+  value = module.platform.workload_identity_service_account_names
+}
+
 output "databricks_workspace_name" {
   value = module.platform.databricks_workspace_name
 }
@@ -92,4 +96,24 @@ output "llm_model" {
 
 output "llm_endpoint" {
   value = module.platform.llm_endpoint
+}
+
+output "model_storage_account_name" {
+  value = module.platform.model_storage_account_name
+}
+
+output "model_storage_account_url" {
+  value = module.platform.model_storage_account_url
+}
+
+output "blob_models_container" {
+  value = module.platform.blob_models_container
+}
+
+output "blob_registry_container" {
+  value = module.platform.blob_registry_container
+}
+
+output "blob_processed_container" {
+  value = module.platform.blob_processed_container
 }
