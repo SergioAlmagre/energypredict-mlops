@@ -31,12 +31,18 @@ variables = {
   KEY_VAULT_NAME_DEV     = "<kv-dev>"
   MODEL_STORAGE_ACCOUNT_NAME_DEV = "<model-storage-account-dev>"
   DATABRICKS_HOST_DEV    = "https://adb-<workspace-id>.<region>.azuredatabricks.net"
+  DATABRICKS_UC_CATALOG_DEV = "energypredict"
+  DATABRICKS_UC_SCHEMA_DEV  = "mlops"
+  DATABRICKS_UC_MODEL_NAME_DEV = "energypredict.mlops.asset_failure_classifier"
 
   AKS_PROD_RESOURCE_GROUP = "<rg-prod>"
   AKS_PROD_CLUSTER_NAME   = "<aks-prod>"
   KEY_VAULT_NAME_PROD     = "<kv-prod>"
   MODEL_STORAGE_ACCOUNT_NAME_PROD = "<model-storage-account-prod>"
   DATABRICKS_HOST_PROD    = "https://adb-<workspace-id>.<region>.azuredatabricks.net"
+  DATABRICKS_UC_CATALOG_PROD = "energypredict"
+  DATABRICKS_UC_SCHEMA_PROD  = "mlops"
+  DATABRICKS_UC_MODEL_NAME_PROD = "energypredict.mlops.asset_failure_classifier"
 
   AKS_WORKLOAD_IDENTITY_CLIENT_ID_DEV  = "<uami-client-id-dev>"
   AKS_WORKLOAD_IDENTITY_CLIENT_ID_PROD = "<uami-client-id-prod>"

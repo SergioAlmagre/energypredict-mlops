@@ -17,11 +17,31 @@ class MLflowClient:
         self.tracking_uri = tracking_uri or settings.mlflow_tracking_uri
         self.registry_uri = settings.mlflow_registry_uri
         self.experiment_name = settings.mlflow_experiment_name
+        self.register_model = settings.mlflow_register_model
+        self.registered_model_name = self._resolve_registered_model_name(
+            configured_name=settings.mlflow_registered_model_name,
+            catalog=settings.mlflow_uc_catalog,
+            schema=settings.mlflow_uc_schema,
+            model_name=settings.mlflow_model_name,
+        )
         self.local_runs_path = Path("artifacts") / "mlflow_runs.json"
         if settings.databricks_host and "DATABRICKS_HOST" not in os.environ:
             os.environ["DATABRICKS_HOST"] = settings.databricks_host
         if settings.databricks_token and "DATABRICKS_TOKEN" not in os.environ:
             os.environ["DATABRICKS_TOKEN"] = settings.databricks_token
+
+    @staticmethod
+    def _resolve_registered_model_name(
+        configured_name: str | None,
+        catalog: str | None,
+        schema: str | None,
+        model_name: str,
+    ) -> str | None:
+        if configured_name:
+            return configured_name
+        if catalog and schema:
+            return f"{catalog}.{schema}.{model_name}"
+        return None
 
     def log_training_run(
         self,
@@ -30,9 +50,11 @@ class MLflowClient:
         metrics: Dict[str, float],
         artifact_uri: str,
         tags: Dict[str, str] | None = None,
+        model: Any | None = None,
+        input_example: Any | None = None,
     ) -> str:
         if not self.tracking_uri.startswith("local://"):
-            return self._log_real_run(run_name, parameters, metrics, artifact_uri, tags)
+            return self._log_real_run(run_name, parameters, metrics, artifact_uri, tags, model, input_example)
 
         run_id = str(uuid4())
         payload = {
@@ -42,6 +64,7 @@ class MLflowClient:
             "metrics": metrics,
             "artifact_uri": artifact_uri,
             "tags": tags or {},
+            "registered_model_name": self.registered_model_name if self.register_model else None,
             "logged_at": datetime.now(timezone.utc).isoformat(),
             "tracking_uri": self.tracking_uri,
         }
@@ -67,6 +90,8 @@ class MLflowClient:
         metrics: Dict[str, float],
         artifact_uri: str,
         tags: Dict[str, str] | None = None,
+        model: Any | None = None,
+        input_example: Any | None = None,
     ) -> str:
         import mlflow
 
@@ -79,6 +104,24 @@ class MLflowClient:
             mlflow.log_metrics(metrics)
             mlflow.set_tags(tags or {})
             mlflow.set_tag("artifact_uri", artifact_uri)
+            if self.register_model:
+                if model is None:
+                    raise ValueError("MLFLOW_REGISTER_MODEL=true requires a trained model object.")
+                if not self.registered_model_name:
+                    raise ValueError(
+                        "MLFLOW_REGISTER_MODEL=true requires MLFLOW_REGISTERED_MODEL_NAME "
+                        "or MLFLOW_UC_CATALOG plus MLFLOW_UC_SCHEMA."
+                    )
+                import mlflow.sklearn as mlflow_sklearn
+
+                mlflow.set_tag("registered_model_name", self.registered_model_name)
+                mlflow.set_tag("registry_uri", self.registry_uri or "")
+                mlflow_sklearn.log_model(
+                    sk_model=model,
+                    artifact_path="model",
+                    input_example=input_example,
+                    registered_model_name=self.registered_model_name,
+                )
             path = Path(artifact_uri)
             if path.exists():
                 mlflow.log_artifact(str(path))

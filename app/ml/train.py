@@ -69,7 +69,8 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 artifact_uri,
             )
 
-        mlflow_run_id = MLflowClient().log_training_run(
+        mlflow_client = MLflowClient()
+        mlflow_run_id = mlflow_client.log_training_run(
             run_name=f"{model_name}_{model_version}",
             parameters=run_payload["parameters"],
             metrics=metrics,
@@ -80,6 +81,8 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 "algorithm": algorithm,
                 "published_artifact_uri": published_artifact_uri,
             },
+            model=model,
+            input_example=X.head(1),
         )
 
         if register_model:
@@ -90,6 +93,11 @@ def train_model(dataset_uri: str, algorithm: str = "RandomForestClassifier", reg
                 "stage": "production",
                 "algorithm": algorithm,
                 "artifact_uri": published_artifact_uri,
+                "mlflow_run_id": mlflow_run_id,
+                "mlflow_registry_uri": mlflow_client.registry_uri,
+                "mlflow_registered_model_name": mlflow_client.registered_model_name
+                if mlflow_client.register_model
+                else None,
                 "metrics": metrics,
                 "created_at": _utc_now_iso(),
                 "promoted_at": _utc_now_iso(),

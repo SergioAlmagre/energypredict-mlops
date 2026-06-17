@@ -293,6 +293,10 @@ stages:
                       kubectl set env configmap/energypredict-config-dev \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_DEV:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_DEV:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_DEV:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         -n energypredict-dev
                       kubectl set env deployment/energypredict-api-dev \
@@ -307,6 +311,10 @@ stages:
                         K8S_TRAINING_JOB_IMAGE="${TRAINING_IMAGE}" \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_DEV:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_DEV:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_DEV:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
                         LLM_MODEL="${LLM_MODEL:-}" \
@@ -321,6 +329,10 @@ stages:
                         MODEL_ARTIFACT_BACKEND=blob \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_DEV:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_DEV:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_DEV:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_DEV}" \
                         -n energypredict-dev
                       echo "Public API endpoint (dev): ${PUBLIC_API_BASE_URL:-not-set}"
@@ -522,6 +534,10 @@ stages:
                       kubectl set env configmap/energypredict-config-prod \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_PROD:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_PROD:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_PROD:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         -n energypredict-prod
                       kubectl set env deployment/energypredict-api-prod \
@@ -536,6 +552,10 @@ stages:
                         K8S_TRAINING_JOB_IMAGE="${TRAINING_IMAGE}" \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_PROD:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_PROD:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_PROD:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         LLM_PROVIDER="${LLM_PROVIDER:-disabled}" \
                         LLM_MODEL="${LLM_MODEL:-}" \
@@ -550,6 +570,10 @@ stages:
                         MODEL_ARTIFACT_BACKEND=blob \
                         MLFLOW_TRACKING_URI=databricks \
                         MLFLOW_REGISTRY_URI=databricks-uc \
+                        MLFLOW_REGISTER_MODEL=true \
+                        MLFLOW_UC_CATALOG="${DATABRICKS_UC_CATALOG_PROD:-energypredict}" \
+                        MLFLOW_UC_SCHEMA="${DATABRICKS_UC_SCHEMA_PROD:-mlops}" \
+                        MLFLOW_REGISTERED_MODEL_NAME="${DATABRICKS_UC_MODEL_NAME_PROD:-energypredict.mlops.asset_failure_classifier}" \
                         DATABRICKS_HOST="${DATABRICKS_HOST_PROD}" \
                         -n energypredict-prod
                       echo "Public API endpoint (prod): ${PUBLIC_API_BASE_URL:-not-set}"

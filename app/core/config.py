@@ -56,7 +56,11 @@ class Settings(BaseSettings):
     mlflow_tracking_uri: str = "local://artifacts/mlflow"
     mlflow_registry_uri: str | None = None
     mlflow_experiment_name: str = "energypredict-training"
-    mlflow_model_name: str = "EnergyPredictRF"
+    mlflow_model_name: str = "asset_failure_classifier"
+    mlflow_register_model: bool = False
+    mlflow_uc_catalog: str | None = None
+    mlflow_uc_schema: str | None = None
+    mlflow_registered_model_name: str | None = None
     training_mode: Literal["local", "k8s_job", "databricks"] = "local"
     k8s_namespace: str = "energypredict-prod"
     k8s_training_job_image: str | None = None
