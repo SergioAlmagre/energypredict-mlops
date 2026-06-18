@@ -5,6 +5,8 @@ Plataforma operativa con backend FastAPI, integraciones MLOps y despliegue cloud
 
 ## Arquitectura objetivo/implementada
 
+Las decisiones y alternativas consideradas estan documentadas en `docs/19_ARCHITECTURE_DECISIONS.md`.
+
 ```mermaid
 flowchart LR
     U[Usuario Plataforma] --> SWA[Azure Static Web App HTTPS]
